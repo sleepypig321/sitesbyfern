@@ -91,3 +91,15 @@ body{
   .studio .signal-card{transform:none!important}
   .studio .signal-card:hover{transform:translateY(-3px)!important}
 }
+
+
+/* A branded fern cursor on devices with precise pointers. */
+@media (hover:hover) and (pointer:fine){
+  body{cursor:url("/fern-cursor.svg") 20 3,auto}
+  a,button,select,input[type="submit"],input[type="button"],input[type="checkbox"]{
+    cursor:url("/fern-cursor.svg") 20 3,pointer;
+  }
+  input:not([type="submit"]):not([type="button"]):not([type="checkbox"]),textarea{
+    cursor:text;
+  }
+}
