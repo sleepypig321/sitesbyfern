@@ -16,7 +16,9 @@
     "EMAILJS_DECISION_TEMPLATE_ID": "template_kik3zps",
     "STRIPE_TEST_HANDOVER_LINK": "https://buy.stripe.com/test_bJecN451bgJs4Nh21KcAo00",
     "STRIPE_TEST_MAINTAIN_LINK": "https://buy.stripe.com/test_6oU9ASbpzgJs5RldKscAo01",
-    "BILLING_DRAFTS_ENABLED": "false"
+    "BILLING_DRAFTS_ENABLED": "false",
+    "STRIPE_LIVE_MAINTAIN_LINK": "https://buy.stripe.com/9B6eVc0M0ggz042dSAdfG00",
+    "STRIPE_LIVE_HANDOVER_LINK": "https://buy.stripe.com/aFa4gy0M0ggz2ca15OdfG01"
   },
   "d1_databases": [
     {
