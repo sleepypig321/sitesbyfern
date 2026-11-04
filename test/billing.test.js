@@ -86,3 +86,17 @@ test('an unresolved run beyond the safe retry window never calls Stripe',async()
  const original=globalThis.fetch;globalThis.fetch=()=>{assert.fail('Unsafe retry');};
  try{await prepareMonthlyDrafts(env,new Date('2026-11-04'));}finally{globalThis.fetch=original;}
 });
+
+test('client registry accepts the supplied configuration and trims copy whitespace',async()=>{
+ const {clients}=await import('../src/billing.js');
+ const row={id:'fern-test',customer:'cus_VZHidJimosd4IK',webhookSecret:' whsec_example ',startMonth:'2026-11',live:false,enabled:true};
+ assert.equal(clients({BILLING_CLIENTS:JSON.stringify([row])})[0].webhookSecret,'whsec_example');
+ assert.equal(clients({BILLING_CLIENTS:[row]})[0].customer,row.customer);
+});
+test('configuration diagnostics identify fields without revealing the supplied secret',async()=>{
+ const {clients}=await import('../src/billing.js');
+ const row={id:'fern-test',customer:'cus_VZHidJimosd4IK',webhookSecret:'whsec_private_fixture',startMonth:'2026-11',live:false};
+ for(const [value,code] of [[undefined,'BILLING_CLIENTS_MISSING'],['not json','BILLING_CLIENTS_JSON'],['{}','BILLING_CLIENTS_ARRAY'],[JSON.stringify([{...row,live:'false'}]),'BILLING_CLIENT_MODE'],[JSON.stringify([{...row,startMonth:'November'}]),'BILLING_CLIENT_MONTH']]){
+  assert.throws(()=>clients({BILLING_CLIENTS:value}),e=>e.billingConfigCode===code&&!e.message.includes(row.webhookSecret));
+ }
+});
