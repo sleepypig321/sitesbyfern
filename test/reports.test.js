@@ -52,3 +52,21 @@ test('approval refuses revenue above the source total',async()=>{
  const response=await reportRoutes(new Request('https://example.com/api/report-review?token='+r.review_token+'&action=approve',{method:'POST',headers:{Origin:'https://example.com','Content-Type':'application/x-www-form-urlencoded'},body:'website_amount=99999.00&evidence=checked&verified=yes'}),env);
  assert.equal(response.status,400);assert.equal(db.prepare('SELECT COUNT(*) AS n FROM billing_reviews').get().n,0);
 });
+
+test('monthly report uses dynamic subject and report-specific review action, never project inquiry fields',async()=>{
+ const {env,token}=setup();env.EMAILJS_DECISION_TEMPLATE_ID='template_decision';
+ let actual;
+ await submit(env,token,async(_env,template,params)=>{actual={template,params};});
+ assert.equal(actual.template,'template_decision');assert.match(actual.params.subject,/^Monthly sales report ready for review/);
+ assert.equal(actual.params.to_email,env.OWNER_EMAIL);assert.equal(actual.params.action_label,'Review monthly sales report');
+ assert.match(actual.params.action_url,/\/api\/report-review\?token=.+&action=approve$/);
+ assert.equal(actual.params.approve_url,undefined);assert.equal(actual.params.business,undefined);
+});
+test('legacy project-styled report notification can be corrected once without duplicating the report',async()=>{
+ const {db,env,token}=setup();await submit(env,token);
+ db.prepare('UPDATE monthly_reports SET notified=1').run();
+ let sends=0;const response=await submit(env,token,async()=>{sends++;});
+ assert.equal(response.status,200);assert.equal(sends,1);assert.equal(db.prepare('SELECT COUNT(*) AS n FROM monthly_reports').get().n,1);
+ assert.equal(db.prepare('SELECT notified FROM monthly_reports').get().notified,2);
+ assert.equal((await submit(env,token)).status,409);
+});
