@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sitesbyfern.fern-croxton.workers.dev/sitemap.xml
