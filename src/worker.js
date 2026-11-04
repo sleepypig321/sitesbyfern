@@ -30,6 +30,16 @@ export async function sendTemplate(env, templateId, params) {
  });
  if (!response.ok) throw deliveryFailure(response.status,await response.text());
 }
+export function checkoutFor(env,plan,reference,sandbox=false){
+ if(!['handover','maintained'].includes(plan))throw Error('Invalid project package');
+ const variable='STRIPE_'+(sandbox?'TEST':'LIVE')+'_'+(plan==='handover'?'HANDOVER':'MAINTAIN')+'_LINK';
+ if(!env[variable])return null;
+ const link=new URL(env[variable]);
+ if(link.protocol!=='https:'||link.hostname!=='buy.stripe.com'||link.username||link.password||link.port)throw Error('Invalid checkout configuration');
+ if(link.pathname.startsWith('/test_')!==sandbox)throw Error('Checkout mode mismatch');
+ link.searchParams.set('client_reference_id',reference);
+ return {url:link.href,sandbox,amount:plan==='handover'?150:100};
+}
 const wrap=body=>`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="same-origin"><title>Sites by Fern · Project review</title><body style="background:#f1e9dc;color:#344532;font:16px/1.6 Arial;max-width:650px;margin:50px auto;padding:25px;border:1px solid #ad9158"><h1 style="font-family:Georgia">Sites by Fern ❧</h1>${body}</body></html>`;
 const page=(body,status=200)=>new Response(wrap(body),{status,headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"}});
 export default {async fetch(request,env){
@@ -77,20 +87,40 @@ export default {async fetch(request,env){
  if(request.method==='GET'){
  if(row.status!=='pending'&&row.status!==decision)return page(`<p>This request has already been ${esc(row.status)}.</p>`,409);
  if(row.client_notified)return page(`<p>This request has been ${esc(row.status)}, and the decision email was sent.</p>`);
- return page(`<h2>${action==='approve'?'Approve':'Decline'} ${esc(data.business)}?</h2><p>Requested by ${esc(data.name)} · ${esc(row.email)}</p><p>${esc(data.description)}</p><p>This will record your decision and email the applicant. Approval does not charge them.</p><form method="post"><button style="padding:14px 25px;background:#52654d;color:white;border:1px solid #ad9158">Confirm ${action==='approve'?'approval':'decline'}</button></form>`);
+ const testCheckout=decision==='approved'?checkoutFor(env,data.plan,row.id,true):null;
+ const sandboxControl=testCheckout?'<label style="display:block;padding:14px;border:1px solid #ad9158;margin:18px 0"><input type="checkbox" name="sandbox_checkout" value="1"> Send a SANDBOX TEST checkout link. No real money is collected. Use only for test inquiries.</label>':'';
+ return page(`<h2>${action==='approve'?'Approve':'Decline'} ${esc(data.business)}?</h2><p>Requested by ${esc(data.name)} · ${esc(row.email)}</p><p>${esc(data.description)}</p><p>This will record your decision and email the applicant. Approval does not charge them.</p><form method="post">${sandboxControl}<button style="padding:14px 25px;background:#52654d;color:white;border:1px solid #ad9158">Confirm ${action==='approve'?'approval':'decline'}</button></form>`);
  }
  if(request.headers.get('Origin')!==url.origin)return page('<p>Please use the confirmation page.</p>',403);
  if(row.status!=='pending'&&row.status!==decision)return page('<p>A different decision is already recorded.</p>',409);
- const claimed=await env.DB.prepare("UPDATE inquiries SET status=? WHERE id=? AND status='pending'").bind(decision,row.id).run();
+ let form=new URLSearchParams();
+ if(request.headers.get('Content-Type')?.startsWith('application/x-www-form-urlencoded')){
+  const body=await request.text();if(body.length>2048)return page('<p>Invalid confirmation form.</p>',400);
+  form=new URLSearchParams(body);
+ }
+ const sandbox=decision==='approved'&&(row.status==='pending'?form.get('sandbox_checkout')==='1':data._sandboxCheckout===true);
+ const checkout=decision==='approved'?checkoutFor(env,data.plan,row.id,sandbox):null;
+ if(sandbox&&!checkout)return page('<p>Sandbox checkout is not configured for this package.</p>',503);
+ if(decision==='approved')data._sandboxCheckout=sandbox;
+ const claimed=await env.DB.prepare("UPDATE inquiries SET status=?, data=? WHERE id=? AND status='pending'").bind(decision,JSON.stringify(data),row.id).run();
  if(!claimed.meta.changes&&row.status==='pending')return page('<p>This decision is being processed. Reload the email link to see its status.</p>',409);
  if(row.client_notified)return page('<p>The decision email was already sent.</p>');
- const subject=decision==='approved'?'Your Sites by Fern project is accepted':'Your Sites by Fern project inquiry';
- const message=decision==='approved'
+ const subject=(checkout?.sandbox?'[SANDBOX TEST] ':'')+(decision==='approved'?'Your Sites by Fern project is accepted':'Your Sites by Fern project inquiry');
+ let message=decision==='approved'
   ? 'Hi '+data.name+',\n\nFern has reviewed your inquiry for '+data.business+' and accepted your project.\n\nThe next step is to confirm the written scope, terms, and payment instructions before work begins. No payment has been collected. You do not need to book a call.\n\nSites by Fern'
   : 'Hi '+data.name+',\n\nThank you for considering Sites by Fern for '+data.business+'. Fern is unable to take on this project at this time. No payment has been taken.\n\nSites by Fern';
+ if(checkout){
+  message='Hi '+data.name+',\n\n'+(checkout.sandbox?'SANDBOX TEST — this is not a request for real payment.\n\n':'')+
+   'Your '+(data.plan==='handover'?'Build & Handover':'Build & Maintain')+' inquiry for '+data.business+' has been approved.\n\n'+
+   'The '+(checkout.sandbox?'test ':'')+'checkout below is for the $'+checkout.amount+' one-time build fee. '+
+   (data.plan==='maintained'?'Maintenance is separate: $30/month or 7% of website sales, whichever is higher. This checkout does not start a maintenance subscription.\n\n':'\n\n')+
+   'Domain, hosting, third-party services, and payment processing costs are separate unless included in your written scope. Confirm the scope and terms before making any real payment.\n\n'+
+   (checkout.sandbox?'Use Stripe test card details only. No real money will move.\n\n':'')+'Sites by Fern';
+ }
  try{await sendTemplate(env,env.EMAILJS_DECISION_TEMPLATE_ID,{
   to_email: row.email, subject, message,
-  action_url: url.origin, action_label: 'View Sites by Fern'
+  action_url: checkout?.url||url.origin,
+  action_label: checkout?(checkout.sandbox?'Open sandbox checkout — $'+checkout.amount:'Pay build fee — $'+checkout.amount):'View Sites by Fern'
  });await env.DB.prepare('UPDATE inquiries SET client_notified=1 WHERE id=?').bind(row.id).run();}catch{return page('<p>Your decision is saved, but the email could not be sent. Open this same review link again and confirm to retry delivery.</p>',503);}
  return page(`<p>Project ${decision}. The applicant’s decision email has been sent.</p>`);
  }
