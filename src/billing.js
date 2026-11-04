@@ -20,14 +20,27 @@ export async function verifySignature(raw,header,secret,now=Date.now()) {
  });
 }
 export function clients(env) {
- const rows=JSON.parse(env.BILLING_CLIENTS||'[]');
- if(!Array.isArray(rows))throw Error('Invalid client registry');
+ const fail=(code,message)=>{throw Object.assign(new Error(message),{billingConfigCode:code});};
+ if(env.BILLING_CLIENTS==null||env.BILLING_CLIENTS==='')fail('BILLING_CLIENTS_MISSING','BILLING_CLIENTS is not available to this deployed Worker.');
+ let rows;
+ try{rows=typeof env.BILLING_CLIENTS==='string'?JSON.parse(env.BILLING_CLIENTS):env.BILLING_CLIENTS;}
+ catch{fail('BILLING_CLIENTS_JSON','BILLING_CLIENTS could not be parsed as JSON.');}
+ if(!Array.isArray(rows))fail('BILLING_CLIENTS_ARRAY','BILLING_CLIENTS must contain an array.');
+ if(!rows.length)fail('BILLING_CLIENTS_EMPTY','BILLING_CLIENTS contains no clients.');
  const ids=new Set();
- for(const c of rows){
-  if(!/^[a-z0-9_-]{1,60}$/.test(c.id)||ids.has(c.id)||!/^cus_\w+$/.test(c.customer)||!/^whsec_/.test(c.webhookSecret)||!/^\d{4}-(0[1-9]|1[0-2])$/.test(c.startMonth)||typeof c.live!=='boolean')throw Error('Invalid client registry');
-  ids.add(c.id);
- }
- return rows;
+ return rows.map((row,index)=>{
+  const prefix='Client entry '+(index+1)+': ';
+  if(!row||typeof row!=='object'||Array.isArray(row))fail('BILLING_CLIENT_OBJECT',prefix+'expected an object.');
+  const c={...row};
+  for(const field of ['id','customer','webhookSecret','startMonth'])if(typeof c[field]==='string')c[field]=c[field].trim();
+  if(typeof c.id!=='string'||!/^[a-z0-9_-]{1,60}$/.test(c.id)||ids.has(c.id))fail('BILLING_CLIENT_ID',prefix+'id is missing, invalid, or duplicated.');
+  if(typeof c.customer!=='string'||!/^cus_\w+$/.test(c.customer))fail('BILLING_CLIENT_CUSTOMER',prefix+'customer must be a Stripe customer ID starting with cus_.');
+  if(typeof c.webhookSecret!=='string'||!/^whsec_\S+$/.test(c.webhookSecret))fail('BILLING_CLIENT_SIGNING_SECRET',prefix+'webhookSecret must be a signing secret starting with whsec_.');
+  if(typeof c.startMonth!=='string'||!/^\d{4}-(0[1-9]|1[0-2])$/.test(c.startMonth))fail('BILLING_CLIENT_MONTH',prefix+'startMonth must use YYYY-MM.');
+  if(typeof c.live!=='boolean')fail('BILLING_CLIENT_MODE',prefix+'live must be true or false without quotes.');
+  if(c.enabled!==undefined&&typeof c.enabled!=='boolean')fail('BILLING_CLIENT_ENABLED',prefix+'enabled must be true or false without quotes.');
+  ids.add(c.id);return c;
+ });
 }
 export function saleFrom(event,client) {
  if(!['checkout.session.completed','checkout.session.async_payment_succeeded'].includes(event.type))return null;
