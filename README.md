@@ -6,13 +6,13 @@ Custom Cloudflare Workers website. Warm tan, sage and gold; responsive landing p
 
 ## Current state
 
-The source is prepared, not deployed. No inquiries or emails have been sent. The form deliberately returns an unavailable message until the database and email service are connected. No payment links are configured, and approval does not charge anyone. Final scope and terms must precede payment.
+The source is connected to GitHub. Live deployment has not yet been verified. The Worker can deploy without a database binding; inquiries remain closed until D1 and email delivery are configured. No inquiries or emails have been sent. The form deliberately returns an unavailable message until the database and email service are connected. No payment links are configured, and approval does not charge anyone. Final scope and terms must precede payment.
 
-## Deploy in your new Cloudflare account
+## Deploy in your selected Cloudflare account
 
-1. Create an empty GitHub repository named `sites-by-fern` on your existing account. Upload the contents of this folder, with `package.json` at the repository root.
+1. The repository is `sleepypig321/sitesbyfern`. The Cloudflare Worker name is `sitesbyfern`.
 2. Install dependencies with `npm install` and sign in to the correct Cloudflare account with `npx wrangler login`.
-3. Run `npx wrangler d1 create sites-by-fern`. Copy its database ID into `wrangler.jsonc`, replacing the placeholder.
+3. Run `npx wrangler d1 create sites-by-fern`. Add a `d1_databases` array to `wrangler.jsonc` containing an object with `binding: "DB"`, `database_name: "sites-by-fern"`, and `database_id` set to the actual returned ID. Do not use a placeholder ID.
 4. Run `npx wrangler d1 execute sites-by-fern --remote --file=schema.sql`.
 5. Connect transactional email delivery. This implementation uses Brevo's API. Create/activate transactional sending and verify an allowed sender address. Set `SENDER_EMAIL` to the sender Brevo accepts; keep `OWNER_EMAIL` as your Outlook address. Public-provider sender rules and deliverability may require another provider or sender setup; do not assume domain-free sending is approved until tested.
 6. Store the Brevo key using `npx wrangler secret put BREVO_API_KEY`. Never put the key in GitHub or browser code.
