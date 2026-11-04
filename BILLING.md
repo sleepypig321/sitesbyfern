@@ -1,6 +1,6 @@
 # Monthly reports and maintenance adjustments
 
-Implemented: a Clover CSV preview/upload page, private client reporting links, owner review by email, signed Stripe sales webhooks, and sandbox adjustment drafts. Uploaded totals are not automatically treated as website sales. No money is collected by this module. Live keys are rejected; draft generation remains disabled by default.
+Implemented: a Clover CSV preview/upload page, private client reporting links, owner review by email, signed Stripe sales webhooks, and sandbox adjustment drafts. Uploaded totals are not automatically treated as website sales. No saved card is charged automatically. Scheduled draft generation remains disabled and sandbox-only; owner-triggered invoice sending is described below.
 
 ## Pricing and scope
 
@@ -77,7 +77,7 @@ FROM report_access WHERE client_id='example-shop';
 
 Treat that link like a password; do not put tokens in GitHub or public pages. Set active=0 to revoke. The page removes the token from its address bar after loading and submits it as a Bearer header. Existing unguessable owner review tokens are separate from client access tokens.
 
-A successful submission stores a pending report and attempts the existing owner EmailJS inquiry template with approve/decline review links. Check `monthly_reports.notified` if email delivery fails; the report remains saved. GET never approves anything. Confirming approval requires a same-origin POST, a website-only amount no greater than report net sales, and evidence notes. It records `billing_reviews.source='csv'`. A CSV review replaces webhook-derived revenue for that client/month; the two are never added. Duplicated client/month uploads return a conflict. Replacing a report after decline currently requires owner database maintenance, and an existing billing run must be reconciled first.
+A successful submission stores a pending report and attempts the existing generic EmailJS decision template with a monthly-report subject and a review link. Check `monthly_reports.notified` if email delivery fails; the report remains saved. GET never approves anything. Confirming approval requires a same-origin POST, a website-only amount no greater than report net sales, and evidence notes. It records `billing_reviews.source='csv'`. A CSV review replaces webhook-derived revenue for that client/month; the two are never added. Duplicated client/month uploads return a conflict. Replacing a report after decline currently requires owner database maintenance, and an existing billing run must be reconciled first.
 
 CSV-only clients can use this registry entry in BILLING_CLIENTS (customer belongs to Fern's sandbox):
 
@@ -98,4 +98,19 @@ INSERT INTO billing_base_payments (client_id,month,invoice_id,paid_cents,verifie
 VALUES ('example-shop','2026-12','in_REPLACE',3000,1);
 ```
 
-An invoice ID cannot be credited to more than one month/client. Records without verified=1 are skipped. Base-payment evidence is a manual attestation, not Stripe confirmation. Missing records block adjustments. The scheduled job remains sandbox-only and creates drafts for the previous month; it neither activates subscriptions nor finalizes/sends/charges invoices. Live maintenance billing still needs its production collection workflow and end-to-end validation. Live build Payment Links remain separate.
+An invoice ID cannot be credited to more than one month/client. Records without verified=1 are skipped. Base-payment evidence is a manual attestation, not Stripe confirmation. Missing records block adjustments. The scheduled job remains sandbox-only and creates drafts for the previous month; it neither activates subscriptions nor finalizes/sends/charges invoices. The owner-triggered invoice workflow below requires live credentials and live client/customer setup before production use. Live build Payment Links remain separate.
+
+
+## Owner-triggered invoices from report review
+
+An approved report now has a **Review invoice options** link. It offers the applicable option: **Send $30 invoice** for the minimum, **Send 7% sales invoice** when that is higher, or only the additional balance if this month's $30 payment is already verified in billing_base_payments. These are alternatives, not two invoices. A zero balance produces no invoice.
+
+GET and the first button only show options and the exact recipient/amount. A separate confirmation sends the payment request through Stripe. It uses collection_method=send_invoice and auto_advance=false; it does not charge a saved card. The owner must check existing invoices/subscription payments, agreed service period, customer and tax treatment before confirming. A missing base-payment record does not prove nonpayment: verify the actual Stripe records first. Do not activate the $30 subscription and send another full-fee invoice for the same period.
+
+MANUAL_INVOICES_ENABLED=true enables these owner buttons. Sandbox clients use the existing STRIPE_SECRET_KEY (sk_test_) and their sandbox customer ID. Live clients require a live customer ID in BILLING_CLIENTS with live=true, and a separate Cloudflare secret STRIPE_LIVE_SECRET_KEY (sk_live_). Keep the sandbox key unchanged. The current fern-test client remains sandbox-only. Never commit keys, put them in chat, or switch the test client to live while keeping its sandbox customer ID.
+
+Stripe test invoices do not send real invoice emails. The page labels them SANDBOX and provides the hosted invoice link returned by Stripe. Real clients receive Stripe's invoice email after the owner confirms. No invoice is created or sent automatically by approving the CSV.
+
+The client/month billing_runs unique key is shared with scheduled drafts to prevent parallel full-fee and adjustment invoices. Manual records have billing_model=manual_minimum, manual_percentage or manual_additional; old scheduled records require reconciliation before using this action. Creation, item addition, finalization and sending use separate deterministic idempotency keys and persist progress. Incomplete operations stop retrying after 23 hours, before Stripe's idempotency retention can expire. Reconcile the saved invoice instead of deleting the billing run and trying again. Sent invoices show their saved Stripe ID rather than creating a duplicate. The page validates the customer, currency, mode and invoice amount before sending; customer credits/taxes/discounts that change the expected amount require manual resolution in Stripe.
+
+No new SQL migration is needed beyond migration 003.

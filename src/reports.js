@@ -1,3 +1,4 @@
+import {manualInvoicePage} from './manual-invoices.js';
 import {parseClover,moneyCents,feeForRevenue} from '../public/report-parser.js';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dollars=c=>'$'+(c/100).toFixed(2);
@@ -44,7 +45,8 @@ export async function reportRoutes(request,env,sendTemplate){
  if(token.length!==72||!['approve','decline'].includes(action))return page('<p>Invalid review link.</p>',400);
  const row=await env.DB.prepare('SELECT * FROM monthly_reports WHERE review_token=?').bind(token).first();
  if(!row||Date.now()-row.created_at>30*86400000)return page('<p>This report link is invalid or expired.</p>',410);
- if(row.status!=='pending')return page('<p>This report has already been '+esc(row.status)+'.</p>');
+ if(row.status==='approved'&&url.searchParams.get('invoice')==='1')return await manualInvoicePage(request,env,row);
+ if(row.status!=='pending')return page('<p>This report has already been '+esc(row.status)+'.</p>'+(row.status==='approved'?'<p><a href="'+esc(url.pathname+'?token='+token+'&action=approve&invoice=1')+'">Review invoice options</a></p>':''));
  const s=JSON.parse(row.summary);
  if(url.searchParams.get('download')==='1'&&request.method==='GET')return new Response(row.csv,{headers:{'Content-Type':'text/csv;charset=utf-8','Content-Disposition':'attachment; filename="monthly-sales-report.csv"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
  if(request.method==='GET'){
@@ -67,5 +69,5 @@ export async function reportRoutes(request,env,sendTemplate){
   env.DB.prepare("INSERT INTO billing_reviews (client_id,month,revenue_cents,approved,source) SELECT client_id,month,website_cents,1,'csv' FROM monthly_reports WHERE id=? AND status='approved' AND website_cents=? AND evidence=? ON CONFLICT(client_id,month) DO UPDATE SET revenue_cents=excluded.revenue_cents,approved=1,source='csv'").bind(row.id,cents,form.get('evidence').trim())
  ]);
  const fee=feeForRevenue(cents);
- return page('<p>Website revenue approved: '+dollars(cents)+'. Total monthly maintenance: '+dollars(fee.total)+'.</p><p>Additional amount after a verified $30 subscription payment: '+dollars(fee.additional)+'. No payment was collected.</p>');
+ return page('<p>Website revenue approved: '+dollars(cents)+'. Total monthly maintenance: '+dollars(fee.total)+'.</p><p>Additional amount after a verified $30 subscription payment: '+dollars(fee.additional)+'. No payment was collected.</p><p><a href="'+esc(url.pathname+'?token='+token+'&action=approve&invoice=1')+'">Review invoice options</a></p>');
 }
