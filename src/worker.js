@@ -30,8 +30,8 @@ export async function sendTemplate(env, templateId, params) {
  });
  if (!response.ok) throw deliveryFailure(response.status,await response.text());
 }
-const wrap=body=>`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Sites by Fern · Project review</title><body style="background:#f1e9dc;color:#344532;font:16px/1.6 Arial;max-width:650px;margin:50px auto;padding:25px;border:1px solid #ad9158"><h1 style="font-family:Georgia">Sites by Fern ❧</h1>${body}</body></html>`;
-const page=(body,status=200)=>new Response(wrap(body),{status,headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"}});
+const wrap=body=>`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="same-origin"><title>Sites by Fern · Project review</title><body style="background:#f1e9dc;color:#344532;font:16px/1.6 Arial;max-width:650px;margin:50px auto;padding:25px;border:1px solid #ad9158"><h1 style="font-family:Georgia">Sites by Fern ❧</h1>${body}</body></html>`;
+const page=(body,status=200)=>new Response(wrap(body),{status,headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"}});
 export default {async fetch(request,env){
  const url=new URL(request.url);
  if(!url.pathname.startsWith('/api/'))return env.ASSETS.fetch(request);
