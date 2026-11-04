@@ -47,3 +47,47 @@ footer>a:last-of-type{font-size:10px}
 .studio .left-column .quiet{border-radius:8% 28% 11% 22% / 18% 33% 16% 37%}.studio .right-column .signal-card{border-radius:9% 24% 8% 27% / 16% 32% 18% 35%}.studio .right-column .quiet{border-radius:26% 8% 24% 9% / 36% 18% 32% 16%}
 @media(max-width:760px){.studio .signal-card{padding:28px 22px 24px;border-radius:36px 12px 43px 16px}.studio .left-column .quiet{border-radius:15px 43px 18px 35px}.studio .right-column .signal-card{border-radius:13px 39px 18px 35px}.studio .right-column .quiet{border-radius:38px 15px 36px 14px}}
 @media(max-width:420px){.studio .signal-card{padding:24px 17px 21px}.studio .signal-card h2{font-size:18px}}
+
+
+/* Fern's understated paper texture and sculptural feature shapes. */
+body{
+  background-color:var(--paper);
+  background-image:repeating-linear-gradient(
+    90deg,
+    rgba(65,43,25,.042) 0,
+    rgba(65,43,25,.042) 1px,
+    transparent 1px,
+    transparent 88px
+  );
+}
+.studio .signal-card{
+  isolation:isolate;
+  border-color:rgba(135,113,74,.32);
+  background:linear-gradient(145deg,#c8d1b8 0%,#b7c5aa 50%,#d9dec9 100%);
+  box-shadow:
+    0 18px 24px -14px rgba(65,47,30,.26),
+    0 34px 42px -26px rgba(65,47,30,.28),
+    inset 7px 8px 22px rgba(255,255,245,.30);
+  transform:rotate(-1.1deg);
+  transition:transform .25s ease,box-shadow .25s ease;
+}
+.studio .left-column .quiet{
+  background:linear-gradient(145deg,#d8dcc9,#c7d1b9 56%,#e4e1d1);
+  transform:rotate(.9deg);
+}
+.studio .right-column .signal-card{transform:rotate(1deg)}
+.studio .right-column .quiet{
+  background:linear-gradient(135deg,#d6dcc9,#c1cbb5 58%,#e1dfcf);
+  transform:rotate(-.8deg);
+}
+.studio .signal-card:hover{
+  transform:translateY(-5px) rotate(0deg);
+  box-shadow:
+    0 23px 30px -15px rgba(65,47,30,.30),
+    0 40px 52px -28px rgba(65,47,30,.32),
+    inset 7px 8px 22px rgba(255,255,245,.32);
+}
+@media(max-width:760px){
+  .studio .signal-card{transform:none!important}
+  .studio .signal-card:hover{transform:translateY(-3px)!important}
+}
