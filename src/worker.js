@@ -1,4 +1,4 @@
-import {salesWebhook,prepareMonthlyDrafts} from './billing.js';
+import {salesWebhook,prepareMonthlyDrafts,clients} from './billing.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 export function validate(input){
@@ -47,7 +47,17 @@ export default {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthly
  const url=new URL(request.url);
  if(!url.pathname.startsWith('/api/'))return env.ASSETS.fetch(request);
  try{
- if(url.pathname.startsWith('/api/billing/webhooks/')&&request.method==='POST')return await salesWebhook(request,env,url.pathname.slice('/api/billing/webhooks/'.length));
+ if(url.pathname.startsWith('/api/billing/webhooks/')&&request.method==='POST'){
+  try{clients(env);}catch{return json({error:'BILLING_CLIENTS must be a valid JSON array with all required client fields.',code:'BILLING_CLIENTS_INVALID'},503);}
+  if(!env.DB)return json({error:'The billing database binding is missing.',code:'BILLING_DB_MISSING'},503);
+  try{return await salesWebhook(request,env,url.pathname.slice('/api/billing/webhooks/'.length));}
+  catch(error){
+   const storage=/D1_|no such table|SQLITE|database/i.test(String(error?.message||''));
+   const code=storage?'BILLING_STORAGE_ERROR':'BILLING_WEBHOOK_ERROR';
+   console.error('Billing webhook failed:',code);
+   return json({error:storage?'Check the billing migration on the database bound to this Worker.':'The webhook could not be processed.',code},500);
+  }
+ }
  if(url.pathname==='/api/inquiries'&&request.method==='POST'){
  if(request.headers.get('Origin')!==url.origin)return json({error:'Please submit from the website.'},403);
  if(!env.DB||!env.EMAILJS_PUBLIC_KEY||!env.EMAILJS_SERVICE_ID||!env.EMAILJS_INQUIRY_TEMPLATE_ID||!env.EMAILJS_DECISION_TEMPLATE_ID)return json({error:'The inquiry form is not open yet. Please check back soon.'},503);
