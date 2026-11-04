@@ -12,5 +12,12 @@
   "vars": {
     "OWNER_EMAIL": "sitesbyfern@outlook.com",
     "SENDER_EMAIL": "sitesbyfern@outlook.com"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sites-by-fern",
+      "database_id": "e1140026-31c2-4a30-a8ad-018d7db1706a"
+    }
+  ]
 }
