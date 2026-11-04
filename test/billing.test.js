@@ -100,3 +100,14 @@ test('configuration diagnostics identify fields without revealing the supplied s
   assert.throws(()=>clients({BILLING_CLIENTS:value}),e=>e.billingConfigCode===code&&!e.message.includes(row.webhookSecret));
  }
 });
+
+test('existing fern_test sandbox tag maps only to the configured fern-test fixture',async()=>{
+ const {saleFrom}=await import('../src/billing.js');
+ const session={id:'cs_existing',metadata:{sites_by_fern_client_id:'fern_test'},mode:'payment',payment_status:'paid',currency:'usd',amount_total:10000,total_details:{amount_tax:0}};
+ const e={type:'checkout.session.completed',created:1793821069,livemode:false,data:{object:session}};
+ const client={id:'fern-test',live:false};
+ assert.equal(saleFrom(e,client).cents,10000);
+ assert.equal(saleFrom({...e,livemode:true},{...client,live:true}),null);
+ assert.equal(saleFrom(e,{id:'another-client',live:false}),null);
+ assert.equal(saleFrom(e,{...client,live:true}),null);
+});
