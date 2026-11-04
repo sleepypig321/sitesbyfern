@@ -5,6 +5,18 @@ export function validate(input){
  for(const [field,max] of Object.entries(fields)){if(typeof input[field]!=='string'&&input[field]!=null)throw Error('Please check your project details.');data[field]=String(input[field]||'').trim();if(data[field].length>max)throw Error('One of your answers is too long.');}
  if(!data.name||!data.business||!data.features||data.description.length<30||!/^\S+@\S+\.\S+$/.test(data.email)||!['handover','maintained'].includes(data.plan)||input.agreement!=='on')throw Error('Please complete the required fields and acknowledge the inquiry terms.');return data;
 }
+export function deliveryFailure(status, body) {
+ const text=String(body).toLowerCase();
+ let code='EMAILJS_REJECTED',reason='The email service rejected the request.';
+ if(/non.browser|api calls are disabled|server.side.*disabled/.test(text)){code='EMAILJS_SERVER_ACCESS';reason='EmailJS has not enabled requests from the website server.';}
+ else if(/private key|accesstoken|access token/.test(text)){code='EMAILJS_PRIVATE_KEY';reason='EmailJS requires its private-key authorization to be configured.';}
+ else if(/public key|user.?id|account.*not found/.test(text)){code='EMAILJS_PUBLIC_KEY';reason='EmailJS did not recognize the configured account key.';}
+ else if(/service.?id|service.*not found|service.*invalid/.test(text)){code='EMAILJS_SERVICE_ID';reason='EmailJS did not recognize the connected email service.';}
+ else if(/template.?id|template.*not found|template.*invalid/.test(text)){code='EMAILJS_TEMPLATE_ID';reason='EmailJS did not recognize the inquiry template.';}
+ else if(status===429||/quota|rate.?limit/.test(text)){code='EMAILJS_LIMIT';reason='The email sending limit has been reached.';}
+ else if(/oauth|authorization|token.*expired|authentication|outlook/.test(text)){code='EMAILJS_OUTLOOK_AUTH';reason='The Outlook email connection needs attention in EmailJS.';}
+ return Object.assign(new Error(reason),{deliveryCode:code,providerStatus:status});
+}
 export async function sendTemplate(env, templateId, params) {
  const payload = {
   service_id: env.EMAILJS_SERVICE_ID,
@@ -16,7 +28,7 @@ export async function sendTemplate(env, templateId, params) {
  const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
   method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
  });
- if (!response.ok) throw Error('Email delivery unavailable');
+ if (!response.ok) throw deliveryFailure(response.status,await response.text());
 }
 const wrap=body=>`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Sites by Fern · Project review</title><body style="background:#f1e9dc;color:#344532;font:16px/1.6 Arial;max-width:650px;margin:50px auto;padding:25px;border:1px solid #ad9158"><h1 style="font-family:Georgia">Sites by Fern ❧</h1>${body}</body></html>`;
 const page=(body,status=200)=>new Response(wrap(body),{status,headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"}});
@@ -46,7 +58,16 @@ export default {async fetch(request,env){
   plan: data.plan==='handover' ? 'Build & handover — $150' : 'Build & maintain — $100 upfront; $30/month or 7% of website sales, whichever is higher',
   details, approve_url: review+'&action=approve', decline_url: review+'&action=decline'
  };
- try{await sendTemplate(env,env.EMAILJS_INQUIRY_TEMPLATE_ID,params);await env.DB.prepare('UPDATE inquiries SET notified=1 WHERE id=?').bind(id).run();}catch{await env.DB.prepare('DELETE FROM inquiries WHERE id=?').bind(id).run();return json({error:'Email delivery is unavailable, so your inquiry was not completed. Please try again later.'},503);}
+ try{await sendTemplate(env,env.EMAILJS_INQUIRY_TEMPLATE_ID,params);}catch(error){
+  await env.DB.prepare('DELETE FROM inquiries WHERE id=?').bind(id).run();
+  const code=error.deliveryCode||'EMAIL_TRANSPORT';
+  const hint=error.deliveryCode?error.message:'The website could not contact the email service.';
+  const status=error.providerStatus?' / HTTP '+error.providerStatus:'';
+  console.error('Inquiry email failed:',code,error.providerStatus||'network');
+  return json({error:'Email delivery unavailable ('+code+status+'). '+hint+' Your inquiry was not completed.',code},503);
+ }
+ try{await env.DB.prepare('UPDATE inquiries SET notified=1 WHERE id=?').bind(id).run();}
+ catch{console.error('Inquiry notification accepted; database notification flag could not be updated.');}
  return json({id:id.slice(0,8)},201);
  }
  if(url.pathname==='/api/review'&&['GET','POST'].includes(request.method)){
