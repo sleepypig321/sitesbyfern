@@ -15,7 +15,8 @@
     "EMAILJS_INQUIRY_TEMPLATE_ID": "template_f24q3gm",
     "EMAILJS_DECISION_TEMPLATE_ID": "template_kik3zps",
     "STRIPE_TEST_HANDOVER_LINK": "https://buy.stripe.com/test_bJecN451bgJs4Nh21KcAo00",
-    "STRIPE_TEST_MAINTAIN_LINK": "https://buy.stripe.com/test_6oU9ASbpzgJs5RldKscAo01"
+    "STRIPE_TEST_MAINTAIN_LINK": "https://buy.stripe.com/test_6oU9ASbpzgJs5RldKscAo01",
+    "BILLING_DRAFTS_ENABLED": "false"
   },
   "d1_databases": [
     {
@@ -23,5 +24,10 @@
       "database_name": "sites-by-fern",
       "database_id": "e1140026-31c2-4a30-a8ad-018d7db1706a"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": [
+      "15 6 * * *"
+    ]
+  }
 }

@@ -1,3 +1,4 @@
+import {salesWebhook,prepareMonthlyDrafts} from './billing.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 export function validate(input){
@@ -42,10 +43,11 @@ export function checkoutFor(env,plan,reference,sandbox=false){
 }
 const wrap=body=>`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="same-origin"><title>Sites by Fern · Project review</title><body style="background:#f1e9dc;color:#344532;font:16px/1.6 Arial;max-width:650px;margin:50px auto;padding:25px;border:1px solid #ad9158"><h1 style="font-family:Georgia">Sites by Fern ❧</h1>${body}</body></html>`;
 const page=(body,status=200)=>new Response(wrap(body),{status,headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"}});
-export default {async fetch(request,env){
+export default {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDrafts(env));},async fetch(request,env){
  const url=new URL(request.url);
  if(!url.pathname.startsWith('/api/'))return env.ASSETS.fetch(request);
  try{
+ if(url.pathname.startsWith('/api/billing/webhooks/')&&request.method==='POST')return await salesWebhook(request,env,url.pathname.slice('/api/billing/webhooks/'.length));
  if(url.pathname==='/api/inquiries'&&request.method==='POST'){
  if(request.headers.get('Origin')!==url.origin)return json({error:'Please submit from the website.'},403);
  if(!env.DB||!env.EMAILJS_PUBLIC_KEY||!env.EMAILJS_SERVICE_ID||!env.EMAILJS_INQUIRY_TEMPLATE_ID||!env.EMAILJS_DECISION_TEMPLATE_ID)return json({error:'The inquiry form is not open yet. Please check back soon.'},503);
