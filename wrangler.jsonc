@@ -13,7 +13,9 @@
     "OWNER_EMAIL": "sitesbyfern@outlook.com",
     "EMAILJS_SERVICE_ID": "sitesbyfern@outlook.com",
     "EMAILJS_INQUIRY_TEMPLATE_ID": "template_f24q3gm",
-    "EMAILJS_DECISION_TEMPLATE_ID": "template_kik3zps"
+    "EMAILJS_DECISION_TEMPLATE_ID": "template_kik3zps",
+    "STRIPE_TEST_HANDOVER_LINK": "https://buy.stripe.com/test_bJecN451bgJs4Nh21KcAo00",
+    "STRIPE_TEST_MAINTAIN_LINK": "https://buy.stripe.com/test_6oU9ASbpzgJs5RldKscAo01"
   },
   "d1_databases": [
     {
