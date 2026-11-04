@@ -18,7 +18,8 @@
     "STRIPE_TEST_MAINTAIN_LINK": "https://buy.stripe.com/test_6oU9ASbpzgJs5RldKscAo01",
     "BILLING_DRAFTS_ENABLED": "false",
     "STRIPE_LIVE_MAINTAIN_LINK": "https://buy.stripe.com/9B6eVc0M0ggz042dSAdfG00",
-    "STRIPE_LIVE_HANDOVER_LINK": "https://buy.stripe.com/aFa4gy0M0ggz2ca15OdfG01"
+    "STRIPE_LIVE_HANDOVER_LINK": "https://buy.stripe.com/aFa4gy0M0ggz2ca15OdfG01",
+    "STRIPE_LIVE_MAINTENANCE_LINK": "https://buy.stripe.com/8x25kCfGU8O7dUS29SdfG02"
   },
   "d1_databases": [
     {
