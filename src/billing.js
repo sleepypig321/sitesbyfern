@@ -1,9 +1,6 @@
+import {feeForRevenue} from '../public/report-parser.js';
 // USD, calendar-month billing. This module creates reviewable drafts only.
-export function monthlyFee(cents) {
- if(!Number.isSafeInteger(cents)||cents<0)throw Error('Invalid revenue');
- const percentage=Number((BigInt(cents)*7n+50n)/100n);
- return {revenue:cents,percentage,total:Math.max(3000,percentage)};
-}
+export const monthlyFee=feeForRevenue;
 export function previousMonth(now=new Date()) {
  return new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-1,1)).toISOString().slice(0,7);
 }
@@ -35,7 +32,7 @@ export function clients(env) {
   for(const field of ['id','customer','webhookSecret','startMonth'])if(typeof c[field]==='string')c[field]=c[field].trim();
   if(typeof c.id!=='string'||!/^[a-z0-9_-]{1,60}$/.test(c.id)||ids.has(c.id))fail('BILLING_CLIENT_ID',prefix+'id is missing, invalid, or duplicated.');
   if(typeof c.customer!=='string'||!/^cus_\w+$/.test(c.customer))fail('BILLING_CLIENT_CUSTOMER',prefix+'customer must be a Stripe customer ID starting with cus_.');
-  if(typeof c.webhookSecret!=='string'||!/^whsec_\S+$/.test(c.webhookSecret))fail('BILLING_CLIENT_SIGNING_SECRET',prefix+'webhookSecret must be a signing secret starting with whsec_.');
+  if(c.source!=='csv'&&(typeof c.webhookSecret!=='string'||!/^whsec_\S+$/.test(c.webhookSecret)))fail('BILLING_CLIENT_SIGNING_SECRET',prefix+'webhookSecret must be a signing secret starting with whsec_.');
   if(typeof c.startMonth!=='string'||!/^\d{4}-(0[1-9]|1[0-2])$/.test(c.startMonth))fail('BILLING_CLIENT_MONTH',prefix+'startMonth must use YYYY-MM.');
   if(typeof c.live!=='boolean')fail('BILLING_CLIENT_MODE',prefix+'live must be true or false without quotes.');
   if(c.enabled!==undefined&&typeof c.enabled!=='boolean')fail('BILLING_CLIENT_ENABLED',prefix+'enabled must be true or false without quotes.');
@@ -55,7 +52,7 @@ export function saleFrom(event,client) {
  return {id:s.id,cents:s.amount_total-s.total_details.amount_tax,month:new Date(event.created*1000).toISOString().slice(0,7)};
 }
 export async function salesWebhook(request,env,id) {
- const client=clients(env).find(c=>c.id===id);
+ const client=clients(env).find(c=>c.id===id&&c.source!=='csv');
  if(!client)return new Response('Not found',{status:404});
  const raw=await request.text();if(raw.length>1000000)return new Response('Too large',{status:413});
  if(!await verifySignature(raw,request.headers.get('Stripe-Signature'),client.webhookSecret))return new Response('Invalid signature',{status:400});
@@ -93,16 +90,22 @@ export async function prepareMonthlyDrafts(env,now=new Date()) {
   const hold=await env.DB.prepare('SELECT event_id FROM billing_holds WHERE client_id=? LIMIT 1').bind(client.id).first();if(hold)continue;
   const existing=await env.DB.prepare('SELECT * FROM billing_runs WHERE client_id=? AND month=?').bind(client.id,month).first();
   if(existing?.status==='ready')continue;
+  if(existing&&existing.billing_model!=='subscription_topup')continue;
+  const base=await env.DB.prepare('SELECT * FROM billing_base_payments WHERE client_id=? AND month=?').bind(client.id,month).first();
+  if(!base||base.paid_cents!==3000||base.verified!==1)continue;
   const revenue=await env.DB.prepare('SELECT COALESCE(SUM(revenue_cents),0) AS cents FROM billing_sales WHERE client_id=? AND month=?').bind(client.id,month).first();
-  const fee=monthlyFee(revenue.cents);
+  const fee=monthlyFee(review.source==='csv'?review.revenue_cents:revenue.cents);
   if(review.revenue_cents!==fee.revenue)continue; // An event arriving after approval invalidates it.
+  if(fee.additional===0){
+   await env.DB.prepare('INSERT OR IGNORE INTO billing_runs (client_id,month,revenue_cents,total_cents,status,billing_model) VALUES (?,?,?,?,?,?)').bind(client.id,month,fee.revenue,0,'ready','subscription_topup').run();continue;
+  }
   if(!existing){
-   await env.DB.prepare('INSERT OR IGNORE INTO billing_runs (client_id,month,revenue_cents,total_cents,status) VALUES (?,?,?,?,?)').bind(client.id,month,fee.revenue,fee.total,'creating').run();
+   await env.DB.prepare('INSERT OR IGNORE INTO billing_runs (client_id,month,revenue_cents,total_cents,status,billing_model) VALUES (?,?,?,?,?,?)').bind(client.id,month,fee.revenue,fee.additional,'creating','subscription_topup').run();
   }
   const run=await env.DB.prepare('SELECT * FROM billing_runs WHERE client_id=? AND month=?').bind(client.id,month).first();
   // Never change an invoice's frozen amount during a retry.
-  if(run.revenue_cents!==fee.revenue||run.total_cents!==fee.total)continue;
-  const prefix='fern-'+client.id+'-'+month;
+  if(run.revenue_cents!==fee.revenue||run.total_cents!==fee.additional)continue;
+  const prefix='fern-topup-'+client.id+'-'+month;
   if(!run.invoice_id){
    // If an API result was lost, do not retry past Stripe's idempotency retention.
    if(Date.now()-run.created_at>23*3600000)continue;
@@ -110,7 +113,7 @@ export async function prepareMonthlyDrafts(env,now=new Date()) {
    await env.DB.prepare('UPDATE billing_runs SET invoice_id=? WHERE client_id=? AND month=?').bind(invoice.id,client.id,month).run();run.invoice_id=invoice.id;
   }
   if(Date.now()-run.created_at>23*3600000)continue;
-  await stripe(env,'invoiceitems',{customer:client.customer,invoice:run.invoice_id,currency:'usd',amount:String(fee.total),discountable:'false',description:month+' website maintenance: greater of $30 or 7% of $'+(fee.revenue/100).toFixed(2)+' qualifying sales'},prefix+'-item');
+  await stripe(env,'invoiceitems',{customer:client.customer,invoice:run.invoice_id,currency:'usd',amount:String(fee.additional),discountable:'false',description:month+' maintenance adjustment: 7% of USD '+(fee.revenue/100).toFixed(2)+' verified website sales less USD 30 subscription already paid'},prefix+'-item');
   await env.DB.prepare("UPDATE billing_runs SET status='ready' WHERE client_id=? AND month=?").bind(client.id,month).run();
  }
 }
