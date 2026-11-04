@@ -5,7 +5,19 @@ export function validate(input){
  for(const [field,max] of Object.entries(fields)){if(typeof input[field]!=='string'&&input[field]!=null)throw Error('Please check your project details.');data[field]=String(input[field]||'').trim();if(data[field].length>max)throw Error('One of your answers is too long.');}
  if(!data.name||!data.business||!data.features||data.description.length<30||!/^\S+@\S+\.\S+$/.test(data.email)||!['handover','maintained'].includes(data.plan)||input.agreement!=='on')throw Error('Please complete the required fields and acknowledge the inquiry terms.');return data;
 }
-async function send(env,to,subject,html){const response=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':env.BREVO_API_KEY,'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({sender:{name:'Sites by Fern',email:env.SENDER_EMAIL},replyTo:{email:env.OWNER_EMAIL},to:[{email:to}],subject,htmlContent:html})});if(!response.ok)throw Error('Email delivery unavailable');}
+export async function sendTemplate(env, templateId, params) {
+ const payload = {
+  service_id: env.EMAILJS_SERVICE_ID,
+  template_id: templateId,
+  user_id: env.EMAILJS_PUBLIC_KEY,
+  template_params: params
+ };
+ if (env.EMAILJS_PRIVATE_KEY) payload.accessToken = env.EMAILJS_PRIVATE_KEY;
+ const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+  method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+ });
+ if (!response.ok) throw Error('Email delivery unavailable');
+}
 const wrap=body=>`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Sites by Fern · Project review</title><body style="background:#f1e9dc;color:#344532;font:16px/1.6 Arial;max-width:650px;margin:50px auto;padding:25px;border:1px solid #ad9158"><h1 style="font-family:Georgia">Sites by Fern ❧</h1>${body}</body></html>`;
 const page=(body,status=200)=>new Response(wrap(body),{status,headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"}});
 export default {async fetch(request,env){
@@ -14,7 +26,7 @@ export default {async fetch(request,env){
  try{
  if(url.pathname==='/api/inquiries'&&request.method==='POST'){
  if(request.headers.get('Origin')!==url.origin)return json({error:'Please submit from the website.'},403);
- if(!env.DB||!env.BREVO_API_KEY)return json({error:'The inquiry form is not open yet. Please check back soon.'},503);
+ if(!env.DB||!env.EMAILJS_PUBLIC_KEY||!env.EMAILJS_SERVICE_ID||!env.EMAILJS_INQUIRY_TEMPLATE_ID||!env.EMAILJS_DECISION_TEMPLATE_ID)return json({error:'The inquiry form is not open yet. Please check back soon.'},503);
  const text=await request.text();if(text.length>18000)return json({error:'Please shorten your inquiry.'},413);
  let input;try{input=JSON.parse(text);}catch{return json({error:'Invalid form data.'},400);}
  if(input.website)return json({id:'received'});
@@ -24,8 +36,17 @@ export default {async fetch(request,env){
  const id=crypto.randomUUID(),token=crypto.randomUUID()+crypto.randomUUID(),now=Date.now();
  await env.DB.prepare('INSERT INTO inquiries (id,created_at,email,data,token) VALUES (?,?,?,?,?)').bind(id,now,data.email,JSON.stringify(data),token).run();
  const review=`${url.origin}/api/review?token=${token}`;
- const details=Object.entries(data).map(([key,value])=>`<p><strong>${esc(key)}</strong><br>${esc(value).replace(/\n/g,'<br>')}</p>`).join('');
- try{await send(env,env.OWNER_EMAIL,`New project inquiry: ${data.business}`,wrap(`<h2>A new project slip</h2>${details}<p><a href="${review}&action=approve">Approve project</a> &nbsp; <a href="${review}&action=decline">Decline project</a></p><p>Each link opens a confirmation page. Links expire after 30 days. Treat this email as private.</p>`));await env.DB.prepare('UPDATE inquiries SET notified=1 WHERE id=?').bind(id).run();}catch{await env.DB.prepare('DELETE FROM inquiries WHERE id=?').bind(id).run();return json({error:'Email delivery is unavailable, so your inquiry was not completed. Please try again later.'},503);}
+ const details = [
+  ['Website brief', data.description], ['Pages and features', data.features],
+  ['Timing', data.timeline || 'Not specified'], ['Domain', data.domain || 'Not specified'],
+  ['Design inspiration and notes', data.inspiration || 'None supplied']
+ ].map(([label,value])=>label+':\n'+value).join('\n\n');
+ const params = {
+  name: data.name, email: data.email, business: data.business,
+  plan: data.plan==='handover' ? 'Build & handover — $150' : 'Build & maintain — $100 upfront; $30/month or 7% of website sales, whichever is higher',
+  details, approve_url: review+'&action=approve', decline_url: review+'&action=decline'
+ };
+ try{await sendTemplate(env,env.EMAILJS_INQUIRY_TEMPLATE_ID,params);await env.DB.prepare('UPDATE inquiries SET notified=1 WHERE id=?').bind(id).run();}catch{await env.DB.prepare('DELETE FROM inquiries WHERE id=?').bind(id).run();return json({error:'Email delivery is unavailable, so your inquiry was not completed. Please try again later.'},503);}
  return json({id:id.slice(0,8)},201);
  }
  if(url.pathname==='/api/review'&&['GET','POST'].includes(request.method)){
@@ -42,8 +63,14 @@ export default {async fetch(request,env){
  const claimed=await env.DB.prepare("UPDATE inquiries SET status=? WHERE id=? AND status='pending'").bind(decision,row.id).run();
  if(!claimed.meta.changes&&row.status==='pending')return page('<p>This decision is being processed. Reload the email link to see its status.</p>',409);
  if(row.client_notified)return page('<p>The decision email was already sent.</p>');
- let message=decision==='approved'?`<h2>Your project has been accepted!</h2><p>Hi ${esc(data.name)}, Fern has reviewed your inquiry for ${esc(data.business)} and would love to move forward.</p><p>The next step is to confirm the written scope, terms, and payment instructions by email before work begins. No payment has been collected. You do not need to book a call.</p>`:`<h2>An update on your project inquiry</h2><p>Hi ${esc(data.name)}, thank you for considering Sites by Fern. Fern is unable to take on this project at this time. No payment has been taken.</p>`;
- try{await send(env,row.email,decision==='approved'?'Your Sites by Fern project is accepted':'Your Sites by Fern project inquiry',wrap(message));await env.DB.prepare('UPDATE inquiries SET client_notified=1 WHERE id=?').bind(row.id).run();}catch{return page('<p>Your decision is saved, but the email could not be sent. Open this same review link again and confirm to retry delivery.</p>',503);}
+ const subject=decision==='approved'?'Your Sites by Fern project is accepted':'Your Sites by Fern project inquiry';
+ const message=decision==='approved'
+  ? 'Hi '+data.name+',\n\nFern has reviewed your inquiry for '+data.business+' and accepted your project.\n\nThe next step is to confirm the written scope, terms, and payment instructions before work begins. No payment has been collected. You do not need to book a call.\n\nSites by Fern'
+  : 'Hi '+data.name+',\n\nThank you for considering Sites by Fern for '+data.business+'. Fern is unable to take on this project at this time. No payment has been taken.\n\nSites by Fern';
+ try{await sendTemplate(env,env.EMAILJS_DECISION_TEMPLATE_ID,{
+  to_email: row.email, subject, message,
+  action_url: url.origin, action_label: 'View Sites by Fern'
+ });await env.DB.prepare('UPDATE inquiries SET client_notified=1 WHERE id=?').bind(row.id).run();}catch{return page('<p>Your decision is saved, but the email could not be sent. Open this same review link again and confirm to retry delivery.</p>',503);}
  return page(`<p>Project ${decision}. The applicant’s decision email has been sent.</p>`);
  }
  return json({error:'Not found'},404);
