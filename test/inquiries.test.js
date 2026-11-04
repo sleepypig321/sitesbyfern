@@ -45,3 +45,25 @@ test('a notification flag failure does not delete an already emailed inquiry',as
  const response=await worker.fetch(new Request('https://site.example/api/inquiries',{method:'POST',headers:{Origin:'https://site.example'},body:JSON.stringify(valid)}),{...emailEnv,DB});
  assert.equal(response.status,201);assert.ok(!statements.some(sql=>sql.startsWith('DELETE')));
 });
+
+test('confirmation page preserves same-origin form metadata without leaking cross-site referrers',async()=>{
+ const row={created_at:Date.now(),data:JSON.stringify(valid),status:'pending',client_notified:0,email:valid.email};
+ const DB={prepare(){return{bind(){return this},async first(){return row}}}};
+ const response=await worker.fetch(new Request('https://site.example/api/review?token='+('a'.repeat(72))+'&action=approve'),{DB});
+ assert.equal(response.headers.get('Referrer-Policy'),'same-origin');
+ const html=await response.text();assert.match(html,/<meta name="referrer" content="same-origin">/);assert.ok(!html.includes('content="no-referrer"'));
+});
+test('cross-origin confirmation still cannot record a decision or send an email',async t=>{
+ let writes=0,sends=0;t.mock.method(globalThis,'fetch',async()=>{sends++;return new Response('OK')});
+ const row={id:'request-2',created_at:Date.now(),data:JSON.stringify(valid),status:'pending',client_notified:0,email:valid.email};
+ const DB={prepare(){return{bind(){return this},async first(){return row},async run(){writes++;return{meta:{changes:1}};}}}};
+ const response=await worker.fetch(new Request('https://site.example/api/review?token='+('a'.repeat(72))+'&action=approve',{method:'POST',headers:{Origin:'https://other.example'}}),{...emailEnv,DB});
+ assert.equal(response.status,403);assert.equal(writes,0);assert.equal(sends,0);
+});
+test('confirmed same-origin approval sends the acceptance email',async t=>{
+ let outbound;t.mock.method(globalThis,'fetch',async(url,options)=>{outbound=JSON.parse(options.body);return new Response('OK')});
+ const row={id:'request-3',created_at:Date.now(),data:JSON.stringify(valid),status:'pending',client_notified:0,email:valid.email};
+ const DB={prepare(){return{bind(){return this},async first(){return row},async run(){return{meta:{changes:1}};}}}};
+ const response=await worker.fetch(new Request('https://site.example/api/review?token='+('a'.repeat(72))+'&action=approve',{method:'POST',headers:{Origin:'https://site.example'}}),{...emailEnv,DB});
+ assert.equal(response.status,200);assert.match(outbound.template_params.subject,/accepted/);assert.equal(outbound.template_params.to_email,valid.email);
+});
