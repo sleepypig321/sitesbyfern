@@ -48,7 +48,7 @@ export default {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthly
  if(!url.pathname.startsWith('/api/'))return env.ASSETS.fetch(request);
  try{
  if(url.pathname.startsWith('/api/billing/webhooks/')&&request.method==='POST'){
-  try{clients(env);}catch{return json({error:'BILLING_CLIENTS must be a valid JSON array with all required client fields.',code:'BILLING_CLIENTS_INVALID'},503);}
+  try{clients(env);}catch(error){const known=typeof error.billingConfigCode==='string'&&/^BILLING_CLIENT[A-Z_]+$/.test(error.billingConfigCode);return json({error:known?error.message:'Billing configuration could not be read.',code:known?error.billingConfigCode:'BILLING_CLIENTS_INVALID'},503);}
   if(!env.DB)return json({error:'The billing database binding is missing.',code:'BILLING_DB_MISSING'},503);
   try{return await salesWebhook(request,env,url.pathname.slice('/api/billing/webhooks/'.length));}
   catch(error){
