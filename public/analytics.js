@@ -1,7 +1,7 @@
 (()=>{
  const measurementId='G-G55SW4HLYK';
  const productionOrigin='https://sitesbyfern.fern-croxton.workers.dev';
- const routes=new Map([['/','/'],['/index.html','/'],['/services','/services'],['/services.html','/services'],['/inquire','/inquire'],['/inquire.html','/inquire']]);
+ const routes=new Map([['/','/'],['/index.html','/'],['/work','/work'],['/work.html','/work'],['/services','/services'],['/services.html','/services'],['/inquire','/inquire'],['/inquire.html','/inquire']]);
  const path=routes.get(location.pathname);
  // Do not initialize on previews, private tools, or capability-bearing URLs.
  if(location.origin!==productionOrigin||!path||new URLSearchParams(location.search).has('token')||window.fernAnalyticsInitialized)return;
