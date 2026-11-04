@@ -11,7 +11,9 @@
   },
   "vars": {
     "OWNER_EMAIL": "sitesbyfern@outlook.com",
-    "SENDER_EMAIL": "sitesbyfern@outlook.com"
+    "EMAILJS_SERVICE_ID": "sitesbyfern@outlook.com",
+    "EMAILJS_INQUIRY_TEMPLATE_ID": "template_f24q3gm",
+    "EMAILJS_DECISION_TEMPLATE_ID": "template_kik3zps"
   },
   "d1_databases": [
     {
