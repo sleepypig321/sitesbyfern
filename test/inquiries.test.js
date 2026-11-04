@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import worker,{validate} from '../src/worker.js';
+import test from 'node:test';import assert from 'node:assert/strict';import worker,{validate,deliveryFailure} from '../src/worker.js';
 const valid={name:'A Client',business:'A Shop',email:'client@example.com',description:'A small business website with a product catalog.',features:'Home and shop',plan:'maintained',agreement:'on'};
 test('validates and normalizes inquiry without allowing arbitrary plans',()=>{assert.equal(validate(valid).plan,'maintained');assert.throws(()=>validate({...valid,plan:'free'}));assert.throws(()=>validate({...valid,agreement:''}));assert.throws(()=>validate({...valid,description:'a'.repeat(5001)}));});
 test('refuses foreign-origin submissions before touching storage',async()=>{const response=await worker.fetch(new Request('https://site.example/api/inquiries',{method:'POST',headers:{Origin:'https://evil.example'},body:'{}'}),{});assert.equal(response.status,403);});
@@ -25,4 +25,23 @@ test('confirmed decline emails the saved applicant using the decision template',
  const DB={prepare(){return{bind(){return this},async first(){return row},async run(){return{meta:{changes:1}};}}}};
  const response=await worker.fetch(new Request('https://site.example/api/review?token='+('a'.repeat(72))+'&action=decline',{method:'POST',headers:{Origin:'https://site.example'}}),{...emailEnv,DB});
  assert.equal(response.status,200);assert.equal(outbound.template_id,'template_kik3zps');assert.equal(outbound.template_params.to_email,valid.email);assert.match(outbound.template_params.message,/unable to take on/);assert.equal(outbound.template_params.action_url,'https://site.example');
+});
+
+test('email setup failures are categorized without disclosing provider text or keys',()=>{
+ const error=deliveryFailure(403,'API calls are disabled for non-browser applications. secret-value');
+ assert.equal(error.deliveryCode,'EMAILJS_SERVER_ACCESS');assert.equal(error.providerStatus,403);assert.ok(!error.message.includes('secret-value'));
+ assert.equal(deliveryFailure(400,'The public key is invalid').deliveryCode,'EMAILJS_PUBLIC_KEY');
+ assert.equal(deliveryFailure(404,'The template ID not found').deliveryCode,'EMAILJS_TEMPLATE_ID');
+});
+test('the inquiry response surfaces a safe provider reason',async t=>{
+ t.mock.method(globalThis,'fetch',async()=>new Response('API calls are disabled for non-browser applications',{status:403}));
+ const DB={prepare(){return{bind(){return this},async first(){return null},async run(){return{meta:{changes:1}};}}}};
+ const response=await worker.fetch(new Request('https://site.example/api/inquiries',{method:'POST',headers:{Origin:'https://site.example'},body:JSON.stringify(valid)}),{...emailEnv,DB});
+ const body=await response.json();assert.equal(response.status,503);assert.equal(body.code,'EMAILJS_SERVER_ACCESS');assert.match(body.error,/HTTP 403/);
+});
+test('a notification flag failure does not delete an already emailed inquiry',async t=>{
+ const statements=[];t.mock.method(globalThis,'fetch',async()=>new Response('OK'));
+ const DB={prepare(sql){statements.push(sql);return{bind(){return this},async first(){return null},async run(){if(sql.startsWith('UPDATE'))throw Error('Database unavailable');return{meta:{changes:1}};}}}};
+ const response=await worker.fetch(new Request('https://site.example/api/inquiries',{method:'POST',headers:{Origin:'https://site.example'},body:JSON.stringify(valid)}),{...emailEnv,DB});
+ assert.equal(response.status,201);assert.ok(!statements.some(sql=>sql.startsWith('DELETE')));
 });
