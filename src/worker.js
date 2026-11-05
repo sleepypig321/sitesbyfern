@@ -4,9 +4,10 @@ import {salesWebhook,prepareMonthlyDrafts,clients} from './billing.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 export function validate(input){
- const fields={name:100,email:254,business:150,description:5000,features:3000,timeline:150,domain:100,inspiration:3000,plan:20};const data={};
+ const fields={name:100,email:254,business:150,description:5000,features:3000,timeline:150,domain:100,inspiration:3000,plan:20,reward_code:40};const data={};
  for(const [field,max] of Object.entries(fields)){if(typeof input[field]!=='string'&&input[field]!=null)throw Error('Please check your project details.');data[field]=String(input[field]||'').trim();if(data[field].length>max)throw Error('One of your answers is too long.');}
- if(!data.name||!data.business||!data.features||data.description.length<30||!/^\S+@\S+\.\S+$/.test(data.email)||!['handover','maintained'].includes(data.plan)||input.agreement!=='on')throw Error('Please complete the required fields and acknowledge the inquiry terms.');return data;
+ if(!data.name||!data.business||!data.features||data.description.length<30||!/^\S+@\S+\.\S+$/.test(data.email)||!['handover','maintained'].includes(data.plan)||input.agreement!=='on')throw Error('Please complete the required fields and acknowledge the inquiry terms.');
+ if(data.reward_code&&!/^FERN-[A-F0-9]{10}$/.test(data.reward_code))throw Error('Please check your reward reference.');return data;
 }
 export function deliveryFailure(status, body) {
  const text=String(body).toLowerCase();
@@ -50,6 +51,21 @@ const app = {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDra
  if(!url.pathname.startsWith('/api/'))return env.ASSETS.fetch(request);
  try{
  if(url.pathname.startsWith('/api/admin/'))return await adminRoutes(request,env);
+ if(url.pathname==='/api/hunt/claim'&&request.method==='POST'){
+  if(request.headers.get('Origin')!==url.origin)return json({error:'Please claim from the website.'},403);
+  if(!env.DB)return json({error:'Reward claims are temporarily unavailable.'},503);
+  const raw=await request.text();if(raw.length>3000)return json({error:'Invalid reward request.'},413);
+  let body;try{body=JSON.parse(raw);}catch{return json({error:'Invalid request.'},400);}
+  const email=typeof body.email==='string'?body.email.trim().toLowerCase():'';
+  const expected=['garden','moth','stardust','key','earth'];
+  if(email.length>254||!/^\S+@\S+\.\S+$/.test(email)||!Array.isArray(body.discoveries)||body.discoveries.length!==5||expected.some(id=>!body.discoveries.includes(id)))return json({error:'Complete all five discoveries and enter a valid email.'},400);
+  const existing=await env.DB.prepare("SELECT id FROM inquiries WHERE email=? AND status LIKE 'reward-%' LIMIT 1").bind(email).first();
+  if(existing)return json({error:'A reward has already been issued for that email. Please use the code you saved.'},409);
+  const bytes=crypto.getRandomValues(new Uint8Array(5));const code='FERN-'+[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+  const id=crypto.randomUUID();const data={name:'Secret Garden visitor',business:'Easter egg reward',plan:'reward',description:'Collected all five hidden discoveries.',features:'10% first-invoice reward request',reward_code:code};
+  await env.DB.prepare("INSERT INTO inquiries (id,created_at,email,data,token,status,notified) VALUES (?,?,?,?,?,'reward-lead',1)").bind(id,Date.now(),email,JSON.stringify(data),code).run();
+  return json({code},201);
+ }
  if(url.pathname==='/api/monthly-reports'||url.pathname==='/api/report-review')return await reportRoutes(request,env,sendTemplate)||json({error:'Not found'},404);
  if(url.pathname.startsWith('/api/billing/webhooks/')&&request.method==='POST'){
   try{clients(env);}catch(error){const known=typeof error.billingConfigCode==='string'&&/^BILLING_CLIENT[A-Z_]+$/.test(error.billingConfigCode);return json({error:known?error.message:'Billing configuration could not be read.',code:known?error.billingConfigCode:'BILLING_CLIENTS_INVALID'},503);}
@@ -69,7 +85,8 @@ const app = {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDra
  let input;try{input=JSON.parse(text);}catch{return json({error:'Invalid form data.'},400);}
  if(input.website)return json({id:'received'});
  let data;try{data=validate(input);}catch(error){return json({error:error.message},400);}
- const recent=await env.DB.prepare('SELECT id FROM inquiries WHERE email = ? AND created_at > ? LIMIT 1').bind(data.email,Date.now()-60000).first();
+ if(data.reward_code){const claim=await env.DB.prepare("SELECT id FROM inquiries WHERE token=? AND email=? AND status='reward-lead' LIMIT 1").bind(data.reward_code,data.email.toLowerCase()).first();if(!claim)return json({error:'Reward code not found for this email or already used.'},400);}
+ const recent=await env.DB.prepare("SELECT id FROM inquiries WHERE email = ? AND status NOT LIKE 'reward-%' AND created_at > ? LIMIT 1").bind(data.email,Date.now()-60000).first();
  if(recent)return json({error:'Please wait a minute before sending another inquiry.'},429);
  const id=crypto.randomUUID(),token=crypto.randomUUID()+crypto.randomUUID(),now=Date.now();
  await env.DB.prepare('INSERT INTO inquiries (id,created_at,email,data,token) VALUES (?,?,?,?,?)').bind(id,now,data.email,JSON.stringify(data),token).run();
@@ -77,7 +94,8 @@ const app = {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDra
  const details = [
   ['Website brief', data.description], ['Pages and features', data.features],
   ['Timing', data.timeline || 'Not specified'], ['Domain', data.domain || 'Not specified'],
-  ['Design inspiration and notes', data.inspiration || 'None supplied']
+  ['Design inspiration and notes', data.inspiration || 'None supplied'],
+  ['Scavenger hunt reward request',data.reward_code ? data.reward_code+' — 10% off first invoice, subject to manual verification; no automatic Stripe discount' : 'None']
  ].map(([label,value])=>label+':\n'+value).join('\n\n');
  const params = {
   name: data.name, email: data.email, business: data.business,
@@ -94,6 +112,7 @@ const app = {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDra
  }
  try{await env.DB.prepare('UPDATE inquiries SET notified=1 WHERE id=?').bind(id).run();}
  catch{console.error('Inquiry notification accepted; database notification flag could not be updated.');}
+ if(data.reward_code){await env.DB.prepare("UPDATE inquiries SET status='reward-submitted' WHERE token=? AND email=? AND status='reward-lead'").bind(data.reward_code,data.email.toLowerCase()).run();}
  return json({id:id.slice(0,8)},201);
  }
  if(url.pathname==='/api/review'&&['GET','POST'].includes(request.method)){
@@ -103,7 +122,7 @@ const app = {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDra
  if(request.method==='GET'){
  if(row.status!=='pending'&&row.status!==decision)return page(`<p>This request has already been ${esc(row.status)}.</p>`,409);
  if(row.client_notified)return page(`<p>This request has been ${esc(row.status)}, and the decision email was sent.</p>`);
- const testCheckout=decision==='approved'?checkoutFor(env,data.plan,row.id,true):null;
+ const testCheckout=decision==='approved'&&!data.reward_code?checkoutFor(env,data.plan,row.id,true):null;
  const sandboxControl=testCheckout?'<label style="display:block;padding:14px;border:1px solid #ad9158;margin:18px 0"><input type="checkbox" name="sandbox_checkout" value="1"> Send a SANDBOX TEST checkout link. No real money is collected. Use only for test inquiries.</label>':'';
  return page(`<h2>${action==='approve'?'Approve':'Decline'} ${esc(data.business)}?</h2><p>Requested by ${esc(data.name)} · ${esc(row.email)}</p><p>${esc(data.description)}</p><p>This will record your decision and email the applicant. Approval does not charge them.</p><form method="post">${sandboxControl}<button style="padding:14px 25px;background:#52654d;color:white;border:1px solid #ad9158">Confirm ${action==='approve'?'approval':'decline'}</button></form>`);
  }
@@ -115,7 +134,7 @@ const app = {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDra
   form=new URLSearchParams(body);
  }
  const sandbox=decision==='approved'&&(row.status==='pending'?form.get('sandbox_checkout')==='1':data._sandboxCheckout===true);
- const checkout=decision==='approved'?checkoutFor(env,data.plan,row.id,sandbox):null;
+ const checkout=decision==='approved'&&!data.reward_code?checkoutFor(env,data.plan,row.id,sandbox):null;
  if(sandbox&&!checkout)return page('<p>Sandbox checkout is not configured for this package.</p>',503);
  if(decision==='approved')data._sandboxCheckout=sandbox;
  const claimed=await env.DB.prepare("UPDATE inquiries SET status=?, data=? WHERE id=? AND status='pending'").bind(decision,JSON.stringify(data),row.id).run();
@@ -133,6 +152,7 @@ const app = {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDra
    'Domain, hosting, third-party services, and payment processing costs are separate unless included in your written scope. Confirm the scope and terms before making any real payment.\n\n'+
    (checkout.sandbox?'Use Stripe test card details only. No real money will move.\n\n':'')+'Sites by Fern';
  }
+ if(decision==='approved'&&data.reward_code){message+='\n\nYour scavenger hunt reward reference ('+data.reward_code+') was included. Fern will confirm eligibility and provide payment instructions with the 10% first-invoice discount if approved. No discount has been applied or payment collected yet.';}
  try{await sendTemplate(env,env.EMAILJS_DECISION_TEMPLATE_ID,{
   to_email: row.email, subject, message,
   action_url: checkout?.url||url.origin,
