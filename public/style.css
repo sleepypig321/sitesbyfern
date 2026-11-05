@@ -304,3 +304,6 @@ nav,.nav-cta,.button,.eyebrow,.signal-card p,.signal-card a,.panel-description,.
 .impact-gentle i{font-style:normal}
 .impact-manifesto{font-family:'American Typewriter','Courier New',Courier,monospace;font-size:clamp(20px,2.5vw,31px);line-height:1.4}
 .impact-manifesto em{font-style:normal;text-decoration:underline;text-decoration-color:#b6a477;text-underline-offset:5px}
+
+/* Fern's universal typewriter font — no display-heading or component exceptions. */
+html body,html body *:not(svg):not(svg *){font-family:'American Typewriter','Courier New',Courier,monospace!important}
