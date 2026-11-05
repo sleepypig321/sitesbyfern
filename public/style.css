@@ -225,3 +225,36 @@ header nav .nav-cta{padding:12px 20px}
 .mission-total strong{font:400 51px/1 Georgia,serif;color:#345140}
 @media(max-width:760px){.mission-hero{min-height:570px;background-image:linear-gradient(90deg,rgba(2,15,13,.93),rgba(2,15,13,.68)),url('/mission-earth.jpg');background-position:60% center}.mission-total strong{font-size:42px}}
 @media(max-width:420px){.mission-hero{min-height:590px}.mission-total span{font-size:8px;max-width:180px}.mission-total strong{font-size:40px}}
+
+/* Gentle Impact: an eccentric editorial composition, not a uniform list. */
+.mission-roadmap{position:relative}
+.mission-heading{max-width:900px;margin:0;padding:90px 0 45px;text-align:left}
+.mission-heading .eyebrow{font-size:10px;letter-spacing:3px;color:#978258;margin-bottom:19px}
+.mission-heading h2{max-width:680px;font-size:clamp(43px,5vw,70px);line-height:1.08;margin-bottom:23px}
+.mission-heading>p:last-child{max-width:640px;margin:0}
+.mission-tiers{border:0;position:relative}
+.mission-tier,.mission-tier:nth-child(n){position:relative;isolation:isolate;min-height:245px;padding:54px 20px;border-bottom:1px solid #b4a07a80}
+.mission-tier:first-child{border-top:1px solid #b4a07a80}
+.mission-tier::before{content:'';position:absolute;z-index:-1;right:4%;top:50%;width:180px;height:180px;border:1px solid #a4b19c59;border-radius:50%;transform:translateY(-50%) rotate(-14deg);box-shadow:0 0 0 21px #a4b19c10;pointer-events:none}
+.mission-tier:nth-child(even)::before{right:auto;left:3%;width:155px;height:155px;border-color:#bea88962}
+.mission-tier:nth-child(even){grid-template-columns:185px minmax(0,1fr) 145px}
+.mission-tier:nth-child(even) .mission-tier-bottom{grid-column:1;align-items:flex-start;text-align:left}
+.mission-tier:nth-child(even) .mission-tier-top{grid-column:3;align-items:flex-end;text-align:right}
+.mission-tier:nth-child(even) .mission-kind,.mission-tier:nth-child(even) h3,.mission-tier:nth-child(even)>p:not(.mission-kind){grid-column:2}
+.mission-tier h3{font-size:clamp(32px,3.4vw,47px);letter-spacing:-1.3px}
+.mission-tier:nth-child(even) h3{font-style:italic}
+.mission-tier-bottom strong{font-size:clamp(45px,5vw,68px);letter-spacing:-2px}
+.mission-tier-top .mission-number{font-size:42px;color:#ad9870}
+.mission-total{min-height:180px;border:0;padding:35px 20px 35px 45px;position:relative;overflow:hidden}
+.mission-total:before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:#aa946b80;z-index:-1}
+.mission-total span{background:var(--paper);padding:15px 25px 15px 0;max-width:400px;line-height:1.8}
+.mission-total strong{font-size:82px;font-style:italic;transform:rotate(-7deg);padding:10px 25px;background:var(--paper)}
+.mission-transparency{max-width:none;width:100%;display:grid;grid-template-columns:minmax(230px,.75fr) minmax(0,1.25fr);gap:clamp(30px,6vw,95px);align-items:start;text-align:left;padding:68px clamp(10px,4vw,55px) 20px;border-top:1px solid #a9956c80;margin-top:45px}
+.mission-aside .eyebrow{color:#9b8154;letter-spacing:2.8px}
+.mission-transparency h2{font:400 clamp(31px,3.3vw,48px)/1.16 Georgia,serif;margin:15px 0}
+.mission-transparency h2 em{font-weight:400;color:#708262}
+.mission-disclosure{padding-top:5px}
+.mission-disclosure p{font:14px/1.85 Georgia,serif;color:#516353}
+.mission-disclosure a{margin-top:12px}
+@media(max-width:900px){.mission-tier,.mission-tier:nth-child(n){column-gap:22px}.mission-tier:nth-child(even){grid-template-columns:145px minmax(0,1fr) 115px}.mission-tier h3{font-size:35px}.mission-tier-bottom strong{font-size:48px}}
+@media(max-width:620px){.mission-heading{padding:53px 0 26px}.mission-heading h2{font-size:43px}.mission-tier,.mission-tier:nth-child(n){min-height:0;padding:30px 0;grid-template-columns:minmax(0,1fr) auto}.mission-tier:nth-child(even){grid-template-columns:minmax(0,1fr) auto}.mission-tier:nth-child(even) .mission-tier-top{grid-column:1;grid-row:1;align-items:center;text-align:left}.mission-tier:nth-child(even) .mission-tier-bottom{grid-column:2;grid-row:1 / span 4;align-items:flex-end;text-align:right}.mission-tier:nth-child(even) .mission-kind{grid-column:1;grid-row:2}.mission-tier:nth-child(even) h3{grid-column:1;grid-row:3}.mission-tier:nth-child(even)>p:not(.mission-kind){grid-column:1;grid-row:4}.mission-tier::before{width:100px;height:100px;right:0;opacity:.55}.mission-tier:nth-child(even)::before{left:auto;right:0;width:100px;height:100px}.mission-tier h3{font-size:29px}.mission-tier-top .mission-number{font-size:26px}.mission-tier-bottom strong{font-size:40px;letter-spacing:-1px}.mission-total{min-height:140px;padding:22px 0}.mission-total span{font-size:8px}.mission-total strong{font-size:57px;padding-right:5px}.mission-transparency{grid-template-columns:1fr;gap:12px;padding:40px 0 10px}.mission-transparency h2{font-size:35px}.mission-disclosure p{font-size:13px}}
