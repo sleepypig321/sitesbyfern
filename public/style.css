@@ -121,3 +121,10 @@ body{
 .work-heading{scroll-margin-top:20px}.work-heading h2{font-family:Georgia,serif;font-size:clamp(35px,4.3vw,58px);font-weight:400;letter-spacing:-1.4px;margin:18px 0 12px}
 @media(max-width:760px){.meet-fern{grid-template-columns:1fr;padding:28px;gap:28px;margin-top:22px}.meet-fern-note{min-height:155px;box-shadow:6px 7px 0 #adb99e6b}.meet-fern-copy h1{font-size:46px}.meet-fern-copy p:not(.eyebrow){font-size:15px}.work-heading h2{font-size:clamp(35px,7vw,50px)}}
 @media(max-width:420px){.meet-fern{padding:20px}.meet-fern-copy h1{font-size:42px}.meet-fern-note{min-height:130px}.meet-scribble{font-size:29px}}
+
+/* Put the person and her thinking before the decorative Wonderland note. */
+.meet-fern{grid-template-columns:minmax(0,1.55fr) minmax(240px,.75fr)}
+.meet-fern-note{transform:rotate(2deg);min-height:330px;padding:28px;text-align:center;gap:17px}
+.meet-note-small{font:italic 15px Georgia,serif;color:#748168}
+.meet-fern-copy p em{color:#334f3b}
+@media(max-width:760px){.meet-fern{grid-template-columns:1fr}.meet-fern-note{min-height:175px;transform:rotate(1deg);max-width:430px;width:100%;justify-self:center}}
