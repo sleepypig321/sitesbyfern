@@ -15,6 +15,7 @@
   };
   const bee = `<svg viewBox="0 0 92 66" focusable="false" aria-hidden="true"><ellipse cx="34" cy="18" rx="21" ry="13" transform="rotate(-25 34 18)" fill="#f6fbfa" fill-opacity=".78" stroke="#d6e2e0"/><ellipse cx="57" cy="17" rx="20" ry="12" transform="rotate(28 57 17)" fill="#f6fbfa" fill-opacity=".8" stroke="#d6e2e0"/><ellipse cx="46" cy="40" rx="28" ry="17" fill="#eabf5a" stroke="#6a503a" stroke-width="2"/><path d="M35 24Q43 40 35 55 M49 23Q57 40 49 56" stroke="#4d4036" stroke-width="8" fill="none"/><circle cx="21" cy="38" r="12" fill="#4f443a"/><circle cx="18" cy="35" r="2.5" fill="white"/><path d="M74 41L86 36L75 46Z" fill="#715943"/></svg>`;
   function bloom(){
+    window.dispatchEvent(new CustomEvent('fern-egg-found',{detail:{id:'garden'}}));
     document.querySelector('.fern-secret-garden')?.remove();
     clearTimeout(clearing);
     const garden=document.createElement('div');garden.className='fern-secret-garden';garden.setAttribute('role','status');garden.setAttribute('aria-label','A secret garden of colorful morning glories blooms, and bees fly among them.');
