@@ -192,3 +192,23 @@ header nav .nav-cta{padding:12px 20px}
 @media(max-width:1000px){.mission-tiers{grid-template-columns:repeat(2,minmax(0,1fr))}.mission-tier{min-height:320px}}
 @media(max-width:760px){.mission-main{padding:22px}.mission-hero{padding:35px 28px}.mission-hero>p:not(.eyebrow):not(.mission-lead){font-size:15px}.mission-promise{padding:30px;grid-template-columns:1fr}.mission-promise aside{border-left:0;border-top:1px solid #ac996e;padding:22px 0 0}.mission-heading{padding-top:48px}}
 @media(max-width:620px){header nav{flex-wrap:wrap;justify-content:center}header nav a{min-height:44px}.mission-tiers{grid-template-columns:1fr}.mission-tier{min-height:300px}.mission-symbol{margin:18px 0 12px}.mission-main{padding:16px}.mission-hero{padding:30px 22px}.mission-lead{font-size:28px}.mission-promise{padding:26px 22px}.mission-promise h2{font-size:32px}}
+
+/* Editorial giving ledger: restrained rows instead of four template-like cards. */
+.mission-main{display:flex;flex-direction:column}
+.mission-hero{order:0}
+.mission-promise{order:1;margin-top:34px;background:transparent;border:0;border-top:1px solid #ae9b71;border-bottom:1px solid #ae9b71;padding:35px 20px}
+.mission-roadmap{order:2}
+.mission-transparency{order:3}
+.mission-heading{padding:62px 0 34px}
+.mission-tiers{display:block;border-top:1px solid #b7a477}
+.mission-tier,.mission-tier:nth-child(n){display:grid;grid-template-columns:145px minmax(0,1fr) 185px;grid-template-rows:auto auto auto;column-gap:35px;align-items:start;min-height:0;padding:33px 10px;border:0;border-bottom:1px solid #b7a477;background:transparent;box-shadow:none}
+.mission-tier-top{grid-column:1;grid-row:1 / span 3;display:flex;flex-direction:column;align-items:flex-start;gap:11px;padding-top:6px}
+.mission-number{font:italic 29px/1 Georgia,serif;color:#a08a58}.mission-threshold{font-size:9px;letter-spacing:1.5px;line-height:1.5}
+.mission-symbol{display:none}
+.mission-kind{grid-column:2;grid-row:1;margin:0 0 8px}
+.mission-tier h3{grid-column:2;grid-row:2;font:400 clamp(27px,3vw,36px)/1.2 Georgia,serif;margin:0 0 9px}
+.mission-tier>p:not(.mission-kind){grid-column:2;grid-row:3;max-width:590px;font:14px/1.7 Georgia,serif;margin:0;color:#556556}
+.mission-tier-bottom{grid-column:3;grid-row:1 / span 3;align-self:center;align-items:flex-end;text-align:right;gap:6px;margin:0;padding:0;border:0}
+.mission-tier-bottom strong{font:400 46px/1 Georgia,serif;color:#345140}.mission-tier-bottom span{max-width:160px;line-height:1.6}
+@media(max-width:760px){.mission-tier,.mission-tier:nth-child(n){grid-template-columns:105px minmax(0,1fr) 115px;column-gap:17px;padding:29px 0}.mission-tier-bottom strong{font-size:37px}.mission-tier h3{font-size:28px}}
+@media(max-width:620px){.mission-promise{padding:25px 0}.mission-heading{padding-top:45px}.mission-tier,.mission-tier:nth-child(n){display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto auto;column-gap:12px;row-gap:4px;padding:25px 0}.mission-tier-top{grid-column:1;grid-row:1;flex-direction:row;align-items:center;gap:16px;padding:0 0 10px}.mission-number{font-size:24px}.mission-tier-bottom{grid-column:2;grid-row:1 / span 4;align-self:center}.mission-tier-bottom strong{font-size:36px}.mission-kind{grid-column:1;grid-row:2}.mission-tier h3{grid-column:1;grid-row:3;font-size:27px}.mission-tier>p:not(.mission-kind){grid-column:1;grid-row:4;font-size:13px}.mission-tier-bottom span{max-width:105px;font-size:7px}}
