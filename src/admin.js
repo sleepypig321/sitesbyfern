@@ -67,7 +67,14 @@ export async function adminRoutes(request,env){
   for(const row of result.results){const sign=row.type==='refund'?-1:1;lines.push([row.date,row.type,row.client_name||'',row.project_name||'',row.description,currency(row.gross_cents*sign),currency(row.sales_tax_cents*sign),currency(row.fee_cents*sign),currency((row.gross_cents-row.sales_tax_cents-row.fee_cents)*sign),row.payment_ref||''].map(csvCell).join(','));}
   return new Response('\uFEFF'+lines.join('\r\n')+'\r\n',{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="sites-by-fern-sales-${year}.csv"`,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
  }
- if(method==='POST'&&!sameOrigin(request,url))return response({error:'Forbidden'},403);
+ if(['POST','PATCH'].includes(method)&&!sameOrigin(request,url))return response({error:'Forbidden'},403);
+ if(path.startsWith('/api/admin/projects/')&&method==='PATCH'){
+  const id=path.slice('/api/admin/projects/'.length);if(!/^[\da-f-]{36}$/.test(id))return response({error:'Invalid project'},400);
+  let data;try{data=await jsonBody(request);}catch{return response({error:'Invalid update'},400);}
+  if(!['planned','active','completed','paused'].includes(data.status))return response({error:'Invalid status'},400);
+  const changed=await env.DB.prepare('UPDATE admin_projects SET status=? WHERE id=?').bind(data.status,id).run();
+  return changed.meta?.changes?response({updated:true}):response({error:'Project not found'},404);
+ }
  if(path==='/api/admin/projects'&&method==='POST'){
   let data;try{data=await jsonBody(request);}catch{return response({error:'Invalid project'},400);}
   const name=text(data.name,140),client=text(data.client_name,140),email=text(data.client_email,254),kind=data.kind,status=data.status;
