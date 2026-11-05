@@ -154,6 +154,12 @@ const app = {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDra
  if(decision==='approved')data._sandboxCheckout=sandbox;
  const claimed=await env.DB.prepare("UPDATE inquiries SET status=?, data=? WHERE id=? AND status='pending'").bind(decision,JSON.stringify(data),row.id).run();
  if(!claimed.meta.changes&&row.status==='pending')return page('<p>This decision is being processed. Reload the email link to see its status.</p>',409);
+ if(decision==='approved'&&!sandbox){
+  const projectKind=data.plan==='maintained'?'managed':'handover';
+  const projectNotes=['Approved website inquiry',data.description||'',data.features?'Requested features: '+data.features:'',data.reward_code?'First-invoice reward code: '+data.reward_code:''].filter(Boolean).join('\n\n').slice(0,2000);
+  await env.DB.prepare("INSERT OR IGNORE INTO admin_projects (id,created_at,name,client_name,client_email,url,kind,status,notes) VALUES (?,?,?,?,?, '',?,'planned',?)")
+   .bind(row.id,Date.now(),data.business,data.name,row.email,projectKind,projectNotes).run();
+ }
  if(row.client_notified)return page('<p>The decision email was already sent.</p>');
  const subject=(checkout?.sandbox?'[SANDBOX TEST] ':'')+(decision==='approved'?'Your Sites by Fern project is accepted':'Your Sites by Fern project inquiry');
  let message=decision==='approved'
