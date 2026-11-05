@@ -32,7 +32,9 @@ export async function adminRoutes(request,env){
   const recent=await env.DB.prepare('SELECT count,until FROM admin_login_limits WHERE key=?').bind(attemptKey).first();
   if(recent?.count>=5&&recent.until>Date.now())return response({error:'Too many attempts. Try again in 15 minutes.'},429);
   const supplied=typeof body.password==='string'&&body.password.length<=512?body.password:'';
-  const valid=equal(await crypt(env.ADMIN_SESSION_SECRET,supplied),await crypt(env.ADMIN_SESSION_SECRET,env.ADMIN_LOGIN_PASSWORD));
+  const suppliedEmail=typeof body.email==='string'?body.email.trim().toLowerCase():'';
+  const ownerEmail=(env.OWNER_EMAIL||'sitesbyfern@outlook.com').trim().toLowerCase();
+  const valid=equal(await crypt(env.ADMIN_SESSION_SECRET,supplied),await crypt(env.ADMIN_SESSION_SECRET,env.ADMIN_LOGIN_PASSWORD))&&suppliedEmail===ownerEmail;
   if(!valid){const until=recent?.until>Date.now()?recent.until:Date.now()+15*60000;const count=recent?.until>Date.now()?recent.count+1:1;
    await env.DB.prepare('INSERT INTO admin_login_limits (key,count,until) VALUES (?,?,?) ON CONFLICT(key) DO UPDATE SET count=excluded.count,until=excluded.until').bind(attemptKey,count,until).run();return response({error:'Incorrect login details.'},401);}
   await env.DB.prepare('DELETE FROM admin_login_limits WHERE key=?').bind(attemptKey).run();
