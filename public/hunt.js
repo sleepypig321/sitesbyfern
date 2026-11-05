@@ -29,7 +29,7 @@
     root.querySelector('.fern-collect-count').textContent=discovered.length+'/5';
     root.querySelector('.fern-collect-list').innerHTML=ids.map((id,index)=>`<li class="${discovered.includes(id)?'is-found':''}"><span>${discovered.includes(id)?'✦':'○'}</span> <strong>${discovered.includes(id)?names[id]:'Undiscovered secret '+(index+1)}</strong>${discovered.includes(id)?'<small>Collected!</small>':''}</li>`).join('');
     const reward=root.querySelector('.fern-collect-reward');
-    reward.innerHTML=discovered.length===5?(rewardCode()?`<strong>YOU FOUND THE MAGIC ✦</strong><p>You've unlocked 10% off your first invoice.</p><code>${rewardCode()}</code><a href="/inquire?reward=1">Enter code with your inquiry ↗</a><small>One-time reward, pending Fern's confirmation. Not valid on later invoices.</small>`:'<strong>ALL FIVE FOUND ✦</strong><p>Your reward is waiting.</p><button type="button" class="fern-request-code">Enter your email to claim ↗</button>'):`<small>${5-discovered.length} ${5-discovered.length===1?'discovery':'discoveries'} left until your reward.</small>`;
+    reward.innerHTML=discovered.length===5?(rewardCode()?`<strong>YOU FOUND THE MAGIC ✦</strong><p>You've unlocked 10% off your first invoice.</p><code>${rewardCode()}</code><a href="/inquire?reward=1">Enter code with your inquiry ↗</a><button type="button" class="fern-resend-code">Resend my reward email ↗</button><span class="fern-resend-status" role="status"></span><small>One-time reward, pending Fern's confirmation. Not valid on later invoices.</small>`:'<strong>ALL FIVE FOUND ✦</strong><p>Your reward is waiting.</p><button type="button" class="fern-request-code">Enter your email to claim ↗</button>'):`<small>${5-discovered.length} ${5-discovered.length===1?'discovery':'discoveries'} left until your reward.</small>`;
   }
   update();
   function announce(id){
@@ -39,6 +39,14 @@
   }
   window.addEventListener('fern-egg-found',event=>{if(ids.includes(event.detail?.id))announce(event.detail.id);});
   root.addEventListener('click',event=>{if(event.target.closest('.fern-request-code'))requestEmail();});
+  root.addEventListener('click',async event=>{
+    const button=event.target.closest('.fern-resend-code');if(!button)return;
+    const status=root.querySelector('.fern-resend-status');let email='';try{email=localStorage.getItem('fern-reward-email')||'';}catch{}
+    if(!email){status.textContent='Email not saved on this device. Please contact Fern with your reward code.';return;}
+    button.disabled=true;status.textContent='Sending…';
+    try{const res=await fetch('/api/hunt/claim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,discoveries:discovered})});const data=await res.json();if(!res.ok)throw Error(data.error||'Email unavailable.');status.textContent='Your reward email is on its way!';}
+    catch(error){status.textContent=error.message;}finally{button.disabled=false;}
+  });
   document.querySelectorAll('[data-open-hunt]').forEach(button=>button.addEventListener('click',()=>open(true)));
 
   const beeMoth='<svg viewBox="0 0 160 110" aria-hidden="true"><path d="M80 48C58 9 13 14 4 42C0 67 33 79 67 67C45 105 75 110 80 85C85 110 115 105 93 67C127 79 160 67 156 42C147 14 102 9 80 48Z" fill="#b7d5b2" stroke="#d9b6bd" stroke-width="2"/><path d="M80 47L80 90M76 50L60 17M84 50L100 17" stroke="#8f7555" stroke-width="3"/><circle cx="41" cy="53" r="9" fill="#635d7e"/><circle cx="119" cy="53" r="9" fill="#635d7e"/></svg>';
