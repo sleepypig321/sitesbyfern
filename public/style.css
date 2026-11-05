@@ -274,3 +274,33 @@ a.nav-cta[href^="/inquire"],a.button[href^="/inquire"],.mission-disclosure a[hre
 a.nav-cta[href^="/inquire"]:hover,a.button[href^="/inquire"]:hover,.mission-disclosure a[href^="/inquire"]:hover{background:#b1c09c;color:#273e30;box-shadow:0 0 30px #9fb18c66}
 a.nav-cta[href^="/inquire"][aria-current="page"]{background:linear-gradient(100deg,#b8cba7,#d6c292);color:#273e30}
 .mission-disclosure a[href^="/inquire"]{display:inline-flex;align-items:center;justify-content:space-between;gap:22px;padding:15px 20px;text-decoration:none;font-size:10px;font-weight:600;letter-spacing:1px}
+
+/* The Gentle Impact Project: a typographic editorial cover, deliberately asymmetric. */
+.mission-heading{max-width:1200px;min-height:660px;margin:0 auto;padding:85px 10px 60px;position:relative;isolation:isolate}
+.mission-heading::before{content:'';position:absolute;z-index:-1;left:49%;top:29%;width:min(46vw,530px);aspect-ratio:1;border:1px solid #a3b59d80;border-radius:50%;box-shadow:0 0 0 27px #a3b59d1a,0 0 0 64px #a3b59d12;pointer-events:none}
+.impact-kicker{display:flex;justify-content:space-between;gap:25px;border-top:1px solid #a9987480;padding-top:13px;color:#8a7959;font:700 9px/1.5 Arial,sans-serif;letter-spacing:2px}
+.mission-heading .impact-title{max-width:none;margin:58px 0 35px;color:#2d493b;font-family:Georgia,serif;font-weight:400;letter-spacing:-.065em;line-height:.88;text-wrap:nowrap}
+.impact-title>span{display:block}
+.impact-the{font-size:clamp(46px,6vw,86px);font-style:italic;padding-left:2%}
+.impact-gentle{font-size:clamp(80px,12vw,165px);font-style:italic;padding-left:8%;letter-spacing:-.09em}
+.impact-gentle i{font:normal clamp(19px,2vw,31px)/1 Georgia,serif;color:#a7936a;vertical-align:top;margin-left:2.4vw;letter-spacing:0}
+.impact-impact{font-size:clamp(86px,13.8vw,190px);padding-left:21%;letter-spacing:-.075em}
+.impact-project{font-size:clamp(86px,13.8vw,190px);font-style:italic;padding-left:32%;letter-spacing:-.08em}
+.impact-period{color:#b49a68}
+.impact-margins{display:grid;grid-template-columns:1fr minmax(250px,.65fr);gap:60px;align-items:end;border-bottom:1px solid #a9987480;padding:18px 3% 25px}
+.impact-manifesto{font:400 clamp(23px,3vw,37px)/1.23 Georgia,serif;color:#354f3d;margin:0}
+.impact-manifesto em{color:#849274}
+.impact-description{max-width:280px;margin:0 0 3px;font:14px/1.7 Georgia,serif;color:#546657}
+.mission-heading .impact-footnote{max-width:620px;margin:19px 0 0 3%;font:10px/1.7 Arial,sans-serif;letter-spacing:.3px;color:#687768}
+@media(max-width:760px){.mission-heading{min-height:0;padding:55px 0 46px}.impact-kicker{font-size:8px;letter-spacing:1px}.mission-heading .impact-title{margin:48px 0 35px}.impact-the{font-size:clamp(33px,7vw,55px)}.impact-gentle{font-size:clamp(60px,12vw,92px);padding-left:2%}.impact-impact{font-size:clamp(70px,13vw,100px);padding-left:9%}.impact-project{font-size:clamp(70px,13vw,100px);padding-left:20%}.impact-margins{gap:22px}.impact-description{font-size:12px}}
+@media(max-width:500px){.impact-kicker span:last-child{max-width:120px;text-align:right}.mission-heading .impact-title{margin:45px 0 30px}.impact-the{font-size:37px}.impact-gentle{font-size:clamp(52px,13vw,69px);padding-left:0}.impact-gentle i{font-size:13px;margin-left:4px}.impact-impact{font-size:clamp(62px,15vw,80px);padding-left:5%}.impact-project{font-size:clamp(60px,15vw,80px);padding-left:13%}.impact-margins{grid-template-columns:1fr;gap:18px;padding:15px 0 20px}.impact-manifesto{font-size:25px}.impact-description{max-width:310px}.mission-heading .impact-footnote{margin-left:0;font-size:9px}.mission-heading::before{top:25%;left:30%;width:62vw}}
+
+/* Warm, personal typewriter typography across the site; expressive display headlines remain. */
+body,button,input,select,textarea{font-family:'American Typewriter','Courier New',Courier,monospace}
+nav,.nav-cta,.button,.eyebrow,.signal-card p,.signal-card a,.panel-description,.project-panel .panel-note,.process p,.form-intro>p,.small,.fine-print,.service-detail p,.service-detail li,.terms-grid p,.page-heading>p:last-child,.home-work-copy>p,.work-inquiry p,.mission-tier>p:not(.mission-kind),.mission-tier>p .mission-stat,.mission-disclosure p,.impact-description,.impact-footnote,.impact-kicker,.mission-donated-value,.mission-stat-label,.mission-donated-label,.mission-kind,.mission-tier-bottom span,.mission-threshold{font-family:'American Typewriter','Courier New',Courier,monospace}
+.mission-tier>p:not(.mission-kind),.mission-disclosure p,.impact-description{line-height:1.85}
+.mission-heading .impact-title{font-family:'American Typewriter','Courier New',Courier,monospace;letter-spacing:-.085em}
+.impact-gentle,.impact-project{font-style:normal}
+.impact-gentle i{font-style:normal}
+.impact-manifesto{font-family:'American Typewriter','Courier New',Courier,monospace;font-size:clamp(20px,2.5vw,31px);line-height:1.4}
+.impact-manifesto em{font-style:normal;text-decoration:underline;text-decoration-color:#b6a477;text-underline-offset:5px}
