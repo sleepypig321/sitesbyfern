@@ -2,3 +2,9 @@
   X-Robots-Tag: noindex, nofollow
 /monthly-report.html
   X-Robots-Tag: noindex, nofollow
+/admin
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+/admin.html
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
