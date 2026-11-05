@@ -128,3 +128,38 @@ body{
 .meet-note-small{font:italic 15px Georgia,serif;color:#748168}
 .meet-fern-copy p em{color:#334f3b}
 @media(max-width:760px){.meet-fern{grid-template-columns:1fr}.meet-fern-note{min-height:175px;transform:rotate(1deg);max-width:430px;width:100%;justify-self:center}}
+
+/* Fern's story: a cinematic moth portrait with accessible, high-contrast editorial copy. */
+.meet-fern{
+  display:flex;
+  align-items:center;
+  min-height:650px;
+  margin:30px 0 28px;
+  padding:clamp(36px,6vw,78px);
+  border:1px solid #a28d654d;
+  background-color:#07120e;
+  background-image:
+    linear-gradient(90deg,rgba(4,13,10,.97) 0%,rgba(5,16,12,.93) 37%,rgba(5,16,12,.68) 64%,rgba(4,12,9,.24) 100%),
+    url('/fern-luna-moth.png');
+  background-size:cover;
+  background-position:center 43%;
+  color:#f2ecdf;
+  isolation:isolate;
+  box-shadow:0 22px 55px rgba(25,35,23,.16);
+}
+.meet-fern:after{display:none}
+.meet-fern-copy{max-width:625px;text-shadow:0 2px 18px rgba(0,0,0,.45)}
+.meet-fern-copy .eyebrow{color:#cbb887;font-size:10px;letter-spacing:.26em;margin-bottom:25px}
+.meet-fern-copy h1{font:400 clamp(48px,5vw,70px)/1.09 Georgia,serif;letter-spacing:-1.5px;color:#fcf7ed;margin-bottom:24px}
+.meet-fern-copy h1 em{color:#c7d3b4}
+.meet-fern-copy .meet-lead{color:#e0dec8!important;font-size:clamp(20px,2vw,26px)!important}
+.meet-fern-copy p:not(.eyebrow){color:#f0eee5;font-size:15px;line-height:1.8}
+.meet-fern-copy p em{color:#d2dfbc}
+.meet-scroll{color:#f5e5b8;border-bottom-color:#bca779;margin-top:14px}
+.meet-scroll:hover{color:#d0e3bc}
+@media(max-width:760px){
+  .meet-fern{min-height:0;padding:46px 30px;background-image:linear-gradient(90deg,rgba(4,13,10,.94),rgba(5,15,11,.87)),url('/fern-luna-moth.png');background-position:55% center}
+  .meet-fern-copy{max-width:100%}
+  .meet-fern-copy h1{font-size:clamp(40px,8vw,54px)}
+}
+@media(max-width:420px){.meet-fern{padding:36px 23px}.meet-fern-copy .eyebrow{font-size:8px;letter-spacing:.18em}.meet-fern-copy p:not(.eyebrow){font-size:14px}}
