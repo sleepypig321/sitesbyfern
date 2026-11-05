@@ -139,7 +139,7 @@ body{
   border:1px solid #a28d654d;
   background-color:#07120e;
   background-image:
-    linear-gradient(90deg,rgba(4,13,10,.97) 0%,rgba(5,16,12,.93) 37%,rgba(5,16,12,.68) 64%,rgba(4,12,9,.24) 100%),
+    linear-gradient(90deg,rgba(4,13,10,.91) 0%,rgba(5,16,12,.82) 37%,rgba(5,16,12,.37) 64%,rgba(4,12,9,.04) 100%),
     url('/fern-luna-moth.png');
   background-size:cover;
   background-position:center 43%;
@@ -158,8 +158,15 @@ body{
 .meet-scroll{color:#f5e5b8;border-bottom-color:#bca779;margin-top:14px}
 .meet-scroll:hover{color:#d0e3bc}
 @media(max-width:760px){
-  .meet-fern{min-height:0;padding:46px 30px;background-image:linear-gradient(90deg,rgba(4,13,10,.94),rgba(5,15,11,.87)),url('/fern-luna-moth.png');background-position:55% center}
+  .meet-fern{min-height:0;padding:46px 30px;background-image:linear-gradient(90deg,rgba(4,13,10,.86),rgba(5,15,11,.65)),url('/fern-luna-moth.png');background-position:55% center}
   .meet-fern-copy{max-width:100%}
   .meet-fern-copy h1{font-size:clamp(40px,8vw,54px)}
 }
 @media(max-width:420px){.meet-fern{padding:36px 23px}.meet-fern-copy .eyebrow{font-size:8px;letter-spacing:.18em}.meet-fern-copy p:not(.eyebrow){font-size:14px}}
+
+/* Give every header navigation link a proper mouse and touch hit area. */
+header{position:relative;z-index:5}
+header nav a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 9px;white-space:nowrap;position:relative;z-index:1}
+header nav .nav-cta{padding:12px 20px}
+@media(max-width:760px){header nav{gap:4px}header nav a{min-height:44px;padding:12px 7px}}
+@media(max-width:420px){header nav{gap:2px}header nav a{padding:12px 5px}header nav .nav-cta{padding:10px 8px}}
