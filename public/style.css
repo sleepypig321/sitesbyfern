@@ -103,3 +103,21 @@ body{
     cursor:text;
   }
 }
+
+/* Meet Fern: the personal introduction flows directly into the portfolio. */
+.meet-fern{display:grid;grid-template-columns:minmax(220px,.75fr) minmax(0,1.5fr);gap:clamp(28px,5vw,76px);align-items:center;margin:30px 0 28px;padding:clamp(28px,5vw,65px);border:1px solid var(--gold);background:linear-gradient(125deg,#d7dfcc 0%,#eee9dc 48%,#f8f2e6 100%);position:relative;overflow:hidden}
+.meet-fern:after{content:"";position:absolute;width:290px;height:290px;right:-135px;bottom:-175px;border:1px solid #a88d5780;border-radius:50%;pointer-events:none}
+.meet-fern-note{min-height:320px;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;position:relative;border:1px solid #b49c6b75;background:linear-gradient(145deg,#f8f3e7,#e9e1d1);box-shadow:10px 13px 0 #adb99e6b;transform:rotate(-2deg)}
+.meet-fern-note:before{content:"";position:absolute;top:-11px;left:50%;width:84px;height:23px;transform:translateX(-50%) rotate(3deg);background:#d9c5a5b5;clip-path:polygon(0 10%,100% 0,96% 100%,4% 90%)}
+.meet-fern-note .eyebrow{font-size:10px;letter-spacing:.19em;color:#657452}
+.meet-scribble{font:italic clamp(25px,3vw,43px)/1.2 Georgia,serif;color:#344e3c;text-align:center;transform:rotate(-3deg)}
+.meet-fern-copy{position:relative;z-index:1}
+.meet-fern-copy h1{font:400 clamp(42px,5vw,70px)/1.08 Georgia,serif;margin:13px 0 19px;letter-spacing:-1.4px}
+.meet-fern-copy h1 em{color:#6c805b}
+.meet-lead{font:italic clamp(19px,2.1vw,26px)/1.35 Georgia,serif!important;color:#415a40!important;margin-bottom:20px!important}
+.meet-fern-copy p:not(.eyebrow){font:15px/1.75 Georgia,serif;color:#4d5449;margin:0 0 15px;max-width:660px}
+.meet-scroll{display:inline-flex;gap:18px;align-items:center;margin-top:8px;padding:12px 0;border-bottom:1px solid #ad925b;color:#34533b;font:600 12px/1.5 system-ui,sans-serif;letter-spacing:.07em;text-decoration:none}
+.meet-scroll:hover{color:#697b4e}.meet-scroll span{font-size:21px}
+.work-heading{scroll-margin-top:20px}.work-heading h2{font-family:Georgia,serif;font-size:clamp(35px,4.3vw,58px);font-weight:400;letter-spacing:-1.4px;margin:18px 0 12px}
+@media(max-width:760px){.meet-fern{grid-template-columns:1fr;padding:28px;gap:28px;margin-top:22px}.meet-fern-note{min-height:155px;box-shadow:6px 7px 0 #adb99e6b}.meet-fern-copy h1{font-size:46px}.meet-fern-copy p:not(.eyebrow){font-size:15px}.work-heading h2{font-size:clamp(35px,7vw,50px)}}
+@media(max-width:420px){.meet-fern{padding:20px}.meet-fern-copy h1{font-size:42px}.meet-fern-note{min-height:130px}.meet-scribble{font-size:29px}}
