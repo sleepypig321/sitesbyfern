@@ -22,6 +22,13 @@ async function refresh(){
 async function boot(){try{const session=await api('session');showWorkspace(session.authenticated);if(session.authenticated)await refresh();}catch(error){$('login-status').textContent=error.message;showWorkspace(false);}}
 $('login-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;const status=$('login-status');status.textContent='Signing in…';try{await post('login',{email:form.elements.email.value,password:form.elements.password.value});form.elements.password.value='';status.textContent='';showWorkspace(true);await refresh();}catch(error){status.textContent=error.message;}});
 $('logout').addEventListener('click',async()=>{try{await post('logout',{});}finally{showWorkspace(false);}});
+$('archive-tests').addEventListener('click',async()=>{
+ const confirmed=window.confirm('Archive ALL currently visible inquiries as test records? They will disappear from the dashboard but remain in the database. Only do this while every inquiry is a test.');
+ if(!confirmed)return;
+ const button=$('archive-tests'),status=$('archive-status');button.disabled=true;status.textContent='Archiving test inquiries…';
+ try{const result=await post('archive-test-inquiries',{confirm:'ARCHIVE TEST INQUIRIES'});status.textContent=`${result.archived} test inquiries archived. Nothing was deleted.`;await refresh();}
+ catch(error){status.textContent=error.message;}finally{button.disabled=false;}
+});
 $('project-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,status=form.querySelector('.form-status'),data=Object.fromEntries(new FormData(form));status.textContent='Saving…';try{await post('projects',data);form.reset();status.textContent='Project saved.';await refresh();}catch(error){status.textContent=error.message;}});
 $('project-list').addEventListener('click',async event=>{const button=event.target.closest('.save-status');if(!button)return;const id=button.dataset.id;const status=button.closest('td').querySelector('select').value;button.disabled=true;try{await api('projects/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});button.textContent='Saved';await refresh();}catch(error){button.textContent=error.message;}finally{button.disabled=false;}});
 const toCents=value=>{const n=Number(value);if(!Number.isFinite(n)||n<0||!/^\d+(\.\d{1,2})?$/.test(String(value)))throw Error('Enter valid dollar amounts (up to two decimals).');return Math.round(n*100);};
