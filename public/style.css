@@ -268,3 +268,9 @@ header nav .nav-cta{padding:12px 20px}
 .mission-tier>p .mission-donated{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:7px 14px;max-width:510px;margin-top:13px;padding:12px 0 0;border-top:1px dashed #98a98a80}
 .mission-donated-label{font:700 9px/1.5 Arial,sans-serif;letter-spacing:1.5px;color:#827052}
 .mission-donated-value{font:italic 13px/1.5 Georgia,serif;color:#5a6b5c}
+
+/* All inquiry links share the homepage's sage-to-gold call-to-action treatment. */
+a.nav-cta[href^="/inquire"],a.button[href^="/inquire"],.mission-disclosure a[href^="/inquire"]{background:linear-gradient(100deg,#b8cba7,#d6c292);color:#273e30;border:1px solid var(--gold);box-shadow:0 0 24px #a8b98e33;transition:background .2s,box-shadow .2s,transform .2s}
+a.nav-cta[href^="/inquire"]:hover,a.button[href^="/inquire"]:hover,.mission-disclosure a[href^="/inquire"]:hover{background:#b1c09c;color:#273e30;box-shadow:0 0 30px #9fb18c66}
+a.nav-cta[href^="/inquire"][aria-current="page"]{background:linear-gradient(100deg,#b8cba7,#d6c292);color:#273e30}
+.mission-disclosure a[href^="/inquire"]{display:inline-flex;align-items:center;justify-content:space-between;gap:22px;padding:15px 20px;text-decoration:none;font-size:10px;font-weight:600;letter-spacing:1px}
