@@ -59,12 +59,27 @@ const app = {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDra
   const email=typeof body.email==='string'?body.email.trim().toLowerCase():'';
   const expected=['garden','moth','stardust','key','earth'];
   if(email.length>254||!/^\S+@\S+\.\S+$/.test(email)||!Array.isArray(body.discoveries)||body.discoveries.length!==5||expected.some(id=>!body.discoveries.includes(id)))return json({error:'Complete all five discoveries and enter a valid email.'},400);
-  const existing=await env.DB.prepare("SELECT id FROM inquiries WHERE email=? AND status LIKE 'reward-%' LIMIT 1").bind(email).first();
-  if(existing)return json({error:'A reward has already been issued for that email. Please use the code you saved.'},409);
-  const bytes=crypto.getRandomValues(new Uint8Array(5));const code='FERN-'+[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
-  const id=crypto.randomUUID();const data={name:'Secret Garden visitor',business:'Easter egg reward',plan:'reward',description:'Collected all five hidden discoveries.',features:'10% first-invoice reward request',reward_code:code};
-  await env.DB.prepare("INSERT INTO inquiries (id,created_at,email,data,token,status,notified) VALUES (?,?,?,?,?,'reward-lead',1)").bind(id,Date.now(),email,JSON.stringify(data),code).run();
-  return json({code},201);
+  if(!env.EMAILJS_SERVICE_ID||!env.EMAILJS_PUBLIC_KEY||!env.EMAILJS_DECISION_TEMPLATE_ID)return json({error:'Reward email delivery is temporarily unavailable. Please try later.'},503);
+  const existing=await env.DB.prepare("SELECT id,token,status,client_notified FROM inquiries WHERE email=? AND status LIKE 'reward-%' LIMIT 1").bind(email).first();
+  if(existing&&existing.status==='reward-submitted')return json({error:'This email has already redeemed its first-invoice reward.'},409);
+  let code=existing?.token;
+  if(!code){
+   const bytes=crypto.getRandomValues(new Uint8Array(5));code='FERN-'+[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+   const id=crypto.randomUUID();const data={name:'Secret Garden visitor',business:'Easter egg reward',plan:'reward',description:'Collected all five hidden discoveries.',features:'10% first-invoice reward request',reward_code:code};
+   await env.DB.prepare("INSERT INTO inquiries (id,created_at,email,data,token,status,notified) VALUES (?,?,?,?,?,'reward-lead',0)").bind(id,Date.now(),email,JSON.stringify(data),code).run();
+  }
+  if(!existing?.client_notified){
+   try{
+    await sendTemplate(env,env.EMAILJS_DECISION_TEMPLATE_ID,{
+     to_email:email,
+     subject:'Your 10% reward from Sites by Fern ✦',
+     message:'You found all five hidden Easter eggs! Your unique reward code is '+code+'. Include this code on the Sites by Fern inquiry form using this email address to request 10% off your full first invoice. The discount applies once, after Fern confirms eligibility; it does not apply to future invoices. Thank you for exploring! — Fern',
+     action_url:url.origin+'/inquire',action_label:'Start an inquiry and use my code'
+    });
+    await env.DB.prepare("UPDATE inquiries SET client_notified=1 WHERE email=? AND token=? AND status='reward-lead'").bind(email,code).run();
+   }catch(error){console.error('Reward email failed:',error.deliveryCode||'EMAIL_TRANSPORT');return json({error:'Your code is reserved, but the email could not be sent yet. Please try again in a moment.'},503);}
+  }
+  return json({code,emailed:true},existing?200:201);
  }
  if(url.pathname==='/api/monthly-reports'||url.pathname==='/api/report-review')return await reportRoutes(request,env,sendTemplate)||json({error:'Not found'},404);
  if(url.pathname.startsWith('/api/billing/webhooks/')&&request.method==='POST'){
