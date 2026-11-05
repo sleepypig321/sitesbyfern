@@ -1,0 +1,15 @@
+.fern-secret-garden{position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;isolation:isolate;animation:fern-garden-exit 11s both}
+.fern-secret-flower{position:absolute;left:var(--x);top:var(--y);width:clamp(70px,12vw,var(--size));height:clamp(70px,12vw,var(--size));transform:translate(-50%,-50%) scale(.02) rotate(-90deg);transform-origin:center;filter:drop-shadow(0 8px 12px #263e3840);animation:fern-garden-bloom 1.5s cubic-bezier(.15,.8,.2,1.25) var(--delay) both,fern-garden-sway 3s ease-in-out 1.8s infinite alternate}
+.fern-secret-flower svg{display:block;width:100%;height:100%}
+.fern-secret-bee{position:absolute;top:var(--top);left:-100px;width:clamp(44px,6vw,72px);height:auto;filter:drop-shadow(0 5px 5px #1115);animation:fern-bee-flight 7.8s ease-in-out var(--delay) both}
+.fern-secret-bee svg{width:100%;height:auto;display:block;animation:fern-bee-hover .18s ease-in-out infinite alternate}
+.fern-garden-whisper{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);padding:10px 24px;border:1px solid #c2aa77;background:#f4efdfef;box-shadow:0 9px 33px #1c3c2a40;color:#31513e;font:italic clamp(13px,1.5vw,18px)/1.5 'American Typewriter','Courier New',monospace;white-space:nowrap;letter-spacing:.6px;opacity:0;animation:fern-message-enter 1s ease 2s forwards}
+.fern-garden-whisper span{color:#bc779c;padding-left:8px}
+@keyframes fern-garden-bloom{0%{transform:translate(-50%,-50%) scale(.01) rotate(-95deg);opacity:0}55%{opacity:1}85%{transform:translate(-50%,-50%) scale(1.1) rotate(calc(var(--tilt) + 5deg))}100%{transform:translate(-50%,-50%) scale(1) rotate(var(--tilt));opacity:1}}
+@keyframes fern-garden-sway{from{rotate:-4deg}to{rotate:5deg}}
+@keyframes fern-bee-flight{0%{transform:translate(-15vw,35px) rotate(-8deg);opacity:0}8%{opacity:1}25%{transform:translate(27vw,-25px) rotate(8deg)}48%{transform:translate(58vw,22px) rotate(-6deg)}72%{transform:translate(82vw,-24px) rotate(5deg)}92%{opacity:1}100%{transform:translate(120vw,18px) rotate(-5deg);opacity:0}}
+@keyframes fern-bee-hover{from{transform:translateY(-3px) rotate(-3deg)}to{transform:translateY(3px) rotate(3deg)}}
+@keyframes fern-message-enter{to{opacity:1}}
+@keyframes fern-garden-exit{0%,83%{opacity:1}100%{opacity:0}}
+@media(max-width:600px){.fern-secret-flower{width:clamp(62px,21vw,var(--size));height:clamp(62px,21vw,var(--size))}.fern-garden-whisper{bottom:11%}}
+@media(prefers-reduced-motion:reduce){.fern-secret-garden{animation:fern-garden-exit 11s both}.fern-secret-flower{animation:none;transform:translate(-50%,-50%) scale(1) rotate(var(--tilt));opacity:1}.fern-secret-bee{animation:none;display:none}.fern-garden-whisper{animation:none;opacity:1}}
