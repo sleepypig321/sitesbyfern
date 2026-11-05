@@ -307,3 +307,52 @@ nav,.nav-cta,.button,.eyebrow,.signal-card p,.signal-card a,.panel-description,.
 
 /* Fern's universal typewriter font — no display-heading or component exceptions. */
 html body,html body *:not(svg):not(svg *){font-family:'American Typewriter','Courier New',Courier,monospace!important}
+
+/* Technical impact ledger: compact, legible, with progressive disclosure. */
+.impact-console{max-width:1230px}
+.impact-console .impact-hero{min-height:420px;padding:55px clamp(24px,5vw,75px);justify-content:center;align-items:flex-start;text-align:left;background-position:center}
+.impact-hero-inner{max-width:710px}
+.impact-hero h1{font-size:clamp(40px,5.4vw,75px);line-height:1.02;letter-spacing:-3px;margin:12px 0 22px;color:#f8f0dc}
+.impact-hero h1 em{color:#c9d6ae;font-style:normal}
+.impact-hero-line{font-size:clamp(14px,1.6vw,20px);font-weight:700;line-height:1.65;color:#fff6de;margin:0 0 10px}
+.impact-hero-caption{max-width:500px;font-size:12px;line-height:1.7;color:#e0e6d5;margin:0}
+.impact-board{margin:0 auto;padding:55px clamp(0px,2vw,28px) 35px}
+.impact-board header.impact-board-header{min-height:0;margin:0;padding:0 0 23px;display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #6a7d67;gap:25px}
+.impact-overline{font-size:9px;letter-spacing:2.5px;color:#8d7857}
+.impact-board-header h2{margin:6px 0 0;font-size:clamp(32px,4vw,54px);font-weight:400;line-height:1.1;letter-spacing:-2px}
+.impact-cap{display:flex;flex-direction:column;align-items:flex-end;text-align:right;color:#46614b}
+.impact-cap>span{font-size:8px;letter-spacing:1.3px}
+.impact-cap strong{font-size:49px;line-height:1.05;font-weight:400}
+.impact-cap small{max-width:220px;font-size:9px;line-height:1.5}
+.impact-board-intro{max-width:770px;margin:20px 0 33px;color:#59695c;font-size:12px;line-height:1.7}
+.impact-grid-head,.impact-row{display:grid;grid-template-columns:170px minmax(0,1fr) 118px 200px;gap:20px;align-items:start}
+.impact-grid-head{padding:11px 14px;background:#aebb9c4d;color:#61715a;font-size:8px;font-weight:700;letter-spacing:1.35px}
+.impact-rows{border-bottom:1px solid #ac986f}
+.impact-row{position:relative;padding:29px 14px;border-top:1px solid #ac986f;min-height:150px}
+.impact-row::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:#8b9d7a;opacity:.45}
+.impact-step{display:flex;flex-direction:column;gap:3px}
+.impact-index{font-size:10px;color:#a18b60;letter-spacing:2px}
+.impact-step strong{font-size:25px;font-weight:400;letter-spacing:-1px;color:#345443}
+.impact-step small{font-size:8px;letter-spacing:.6px;color:#7c886f}
+.impact-cause h3{font-size:clamp(19px,2vw,26px);line-height:1.2;font-weight:400;letter-spacing:-1px;margin:2px 0 5px}
+.impact-cause>p{font-size:11px;color:#60715e;margin:0 0 10px}
+.impact-cause details{max-width:510px}
+.impact-cause summary,.impact-method summary{list-style:none;cursor:pointer;color:#6c765a;font-size:10px;letter-spacing:.2px;text-decoration:underline;text-underline-offset:4px}
+.impact-cause summary::-webkit-details-marker,.impact-method summary::-webkit-details-marker{display:none}
+.impact-cause summary span,.impact-method summary span{display:inline-block;margin-left:8px;color:#a38b5b;text-decoration:none}
+.impact-cause details[open] summary span,.impact-method[open] summary span{transform:rotate(45deg)}
+.impact-cause details p{margin:12px 0 0;font-size:11px;line-height:1.8;color:#506451}
+.impact-cause details a{color:#35634e;text-underline-offset:4px}
+.impact-share{font-size:clamp(25px,3vw,38px);line-height:1;color:#345443;letter-spacing:-2px}
+.impact-record{padding-top:7px;color:#657562;font-size:9px;line-height:1.7;letter-spacing:.25px}
+.impact-record span:before{content:'○';margin-right:8px;color:#a58e62}
+.impact-board-footer{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:19px 14px;border-bottom:1px solid #ac986f}
+.impact-board-footer span{font-size:9px;letter-spacing:1.2px;color:#7b876e}
+.impact-board-footer strong{font-size:19px;font-weight:400;color:#31533d}
+.impact-method{margin:30px 14px 0;padding:17px 0;border-top:1px dashed #a9b09a}
+.impact-method summary{font-size:12px;text-decoration:none}
+.impact-method p{max-width:880px;margin:15px 0 0;font-size:11px;line-height:1.9;color:#596a5d}
+.impact-exit{margin:0 28px 55px;display:flex;align-items:center;justify-content:space-between;gap:22px;border-top:1px solid #b4a27e;padding-top:25px}
+.impact-exit p{font-size:16px;margin:0;color:#3b5c47}
+@media(max-width:900px){.impact-grid-head,.impact-row{grid-template-columns:125px minmax(0,1fr) 86px 135px;gap:13px}.impact-step strong{font-size:20px}.impact-record{font-size:8px}.impact-share{font-size:29px}}
+@media(max-width:620px){.impact-console .impact-hero{min-height:380px;padding:35px 25px}.impact-hero h1{font-size:clamp(35px,9vw,54px);letter-spacing:-2px}.impact-hero-line{font-size:14px}.impact-hero-caption{font-size:10px}.impact-board{padding:37px 0 23px}.impact-board header.impact-board-header{align-items:flex-start}.impact-board-header h2{font-size:32px}.impact-cap>span{font-size:7px;max-width:145px}.impact-cap strong{font-size:35px}.impact-cap small{font-size:7px;max-width:130px}.impact-board-intro{font-size:11px}.impact-grid-head{display:none}.impact-row{grid-template-columns:90px minmax(0,1fr) auto;gap:7px 11px;padding:22px 5px}.impact-step{grid-column:1}.impact-step strong{font-size:18px}.impact-step small{font-size:7px}.impact-cause{grid-column:2 / 4;grid-row:1 / span 2}.impact-cause h3{font-size:21px}.impact-cause>p{font-size:10px;max-width:240px}.impact-share{grid-column:1;grid-row:2;font-size:26px}.impact-record{grid-column:1 / 4;grid-row:3;font-size:8px;padding:9px 0 0;border-top:1px dashed #b4baa9}.impact-board-footer strong{font-size:14px}.impact-board-footer span{font-size:7px}.impact-exit{margin:0 0 40px;flex-direction:column;align-items:flex-start}.impact-exit p{font-size:13px}}
