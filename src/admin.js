@@ -49,15 +49,15 @@ export async function adminRoutes(request,env){
  }
  if(path==='/api/admin/overview'&&method==='GET'){
   const [inquiries,projects,receipts,managed]=await Promise.all([
-   env.DB.prepare('SELECT status,COUNT(*) AS total FROM inquiries GROUP BY status').all(),
+   env.DB.prepare("SELECT status,COUNT(*) AS total FROM inquiries WHERE status NOT LIKE 'test-%' GROUP BY status").all(),
    env.DB.prepare('SELECT status,COUNT(*) AS total FROM admin_projects GROUP BY status').all(),
    env.DB.prepare('SELECT type,COALESCE(SUM(gross_cents-sales_tax_cents-fee_cents),0) AS total FROM admin_receipts GROUP BY type').all(),
-   env.DB.prepare('SELECT client_id,month,SUM(revenue_cents) AS cents FROM billing_sales GROUP BY client_id,month ORDER BY month DESC LIMIT 12').all()
+   env.DB.prepare("SELECT client_id,month,SUM(revenue_cents) AS cents FROM billing_sales WHERE client_id NOT IN ('fern-test','fern_test') GROUP BY client_id,month ORDER BY month DESC LIMIT 12").all()
   ]);
   return response({inquiries:inquiries.results,projects:projects.results,receipts:receipts.results,clientSiteSales:managed.results});
  }
  if(path==='/api/admin/inquiries'&&method==='GET'){
-  const result=await env.DB.prepare('SELECT id,created_at,email,data,status,notified,client_notified FROM inquiries ORDER BY created_at DESC LIMIT 200').all();
+  const result=await env.DB.prepare("SELECT id,created_at,email,data,status,notified,client_notified FROM inquiries WHERE status NOT LIKE 'test-%' ORDER BY created_at DESC LIMIT 200").all();
   return response({rows:result.results.map(({data,...row})=>({...row,details:JSON.parse(data)}))});
  }
  if(path==='/api/admin/projects'&&method==='GET')return response({rows:(await env.DB.prepare('SELECT * FROM admin_projects ORDER BY created_at DESC LIMIT 500').all()).results});
@@ -70,6 +70,12 @@ export async function adminRoutes(request,env){
   return new Response('\uFEFF'+lines.join('\r\n')+'\r\n',{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="sites-by-fern-sales-${year}.csv"`,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
  }
  if(['POST','PATCH'].includes(method)&&!sameOrigin(request,url))return response({error:'Forbidden'},403);
+ if(path==='/api/admin/archive-test-inquiries'&&method==='POST'){
+  let body;try{body=await jsonBody(request);}catch{return response({error:'Invalid request'},400);}
+  if(body.confirm!=='ARCHIVE TEST INQUIRIES')return response({error:'Confirmation required'},400);
+  const result=await env.DB.prepare("UPDATE inquiries SET status='test-'||status WHERE status NOT LIKE 'test-%'").run();
+  return response({archived:result.meta?.changes||0});
+ }
  if(path.startsWith('/api/admin/projects/')&&method==='PATCH'){
   const id=path.slice('/api/admin/projects/'.length);if(!/^[\da-f-]{36}$/.test(id))return response({error:'Invalid project'},400);
   let data;try{data=await jsonBody(request);}catch{return response({error:'Invalid update'},400);}
