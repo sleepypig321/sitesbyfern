@@ -1,4 +1,5 @@
 import {reportRoutes} from './reports.js';
+import {adminRoutes} from './admin.js';
 import {salesWebhook,prepareMonthlyDrafts,clients} from './billing.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
@@ -48,6 +49,7 @@ const app = {async scheduled(controller,env,ctx){ctx.waitUntil(prepareMonthlyDra
  const url=new URL(request.url);
  if(!url.pathname.startsWith('/api/'))return env.ASSETS.fetch(request);
  try{
+ if(url.pathname.startsWith('/api/admin/'))return await adminRoutes(request,env);
  if(url.pathname==='/api/monthly-reports'||url.pathname==='/api/report-review')return await reportRoutes(request,env,sendTemplate)||json({error:'Not found'},404);
  if(url.pathname.startsWith('/api/billing/webhooks/')&&request.method==='POST'){
   try{clients(env);}catch(error){const known=typeof error.billingConfigCode==='string'&&/^BILLING_CLIENT[A-Z_]+$/.test(error.billingConfigCode);return json({error:known?error.message:'Billing configuration could not be read.',code:known?error.billingConfigCode:'BILLING_CLIENTS_INVALID'},503);}
