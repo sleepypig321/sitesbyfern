@@ -264,3 +264,7 @@ header nav .nav-cta{padding:12px 20px}
 .mission-stat strong{font-weight:700;color:#2a4938}
 .mission-stat a{display:inline-block;color:#647c64;text-decoration:none;border-bottom:1px solid #647c6480;white-space:nowrap}
 .mission-stat a:hover,.mission-stat a:focus-visible{color:#2a4938;border-color:currentColor}
+
+.mission-tier>p .mission-donated{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:7px 14px;max-width:510px;margin-top:13px;padding:12px 0 0;border-top:1px dashed #98a98a80}
+.mission-donated-label{font:700 9px/1.5 Arial,sans-serif;letter-spacing:1.5px;color:#827052}
+.mission-donated-value{font:italic 13px/1.5 Georgia,serif;color:#5a6b5c}
