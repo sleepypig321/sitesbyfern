@@ -212,3 +212,16 @@ header nav .nav-cta{padding:12px 20px}
 .mission-tier-bottom strong{font:400 46px/1 Georgia,serif;color:#345140}.mission-tier-bottom span{max-width:160px;line-height:1.6}
 @media(max-width:760px){.mission-tier,.mission-tier:nth-child(n){grid-template-columns:105px minmax(0,1fr) 115px;column-gap:17px;padding:29px 0}.mission-tier-bottom strong{font-size:37px}.mission-tier h3{font-size:28px}}
 @media(max-width:620px){.mission-promise{padding:25px 0}.mission-heading{padding-top:45px}.mission-tier,.mission-tier:nth-child(n){display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto auto;column-gap:12px;row-gap:4px;padding:25px 0}.mission-tier-top{grid-column:1;grid-row:1;flex-direction:row;align-items:center;gap:16px;padding:0 0 10px}.mission-number{font-size:24px}.mission-tier-bottom{grid-column:2;grid-row:1 / span 4;align-self:center}.mission-tier-bottom strong{font-size:36px}.mission-kind{grid-column:1;grid-row:2}.mission-tier h3{grid-column:1;grid-row:3;font-size:27px}.mission-tier>p:not(.mission-kind){grid-column:1;grid-row:4;font-size:13px}.mission-tier-bottom span{max-width:105px;font-size:7px}}
+
+/* Earth & Moon hero: one clear statement, followed by the ledger below. */
+.mission-hero{min-height:620px;display:flex;flex-direction:column;justify-content:center;background-color:#071b19;background-image:linear-gradient(90deg,rgba(2,15,13,.97) 0%,rgba(2,15,13,.88) 37%,rgba(2,15,13,.53) 64%,rgba(2,15,13,.05) 100%),url('/mission-earth.jpg');background-size:cover;background-position:center center}
+.mission-hero:after{display:none}
+.mission-hero .mission-lead{max-width:750px;text-shadow:0 2px 14px #000a}
+.mission-hero>p:not(.eyebrow):not(.mission-lead){max-width:660px;text-shadow:0 2px 14px #000b}
+.mission-hero>p em{color:#e6d6a8}
+.mission-heading{padding-top:60px}
+.mission-total{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:28px 10px;border-bottom:1px solid #b7a477}
+.mission-total span{font-size:10px;letter-spacing:1.8px;color:#62735e;font-weight:700}
+.mission-total strong{font:400 51px/1 Georgia,serif;color:#345140}
+@media(max-width:760px){.mission-hero{min-height:570px;background-image:linear-gradient(90deg,rgba(2,15,13,.93),rgba(2,15,13,.68)),url('/mission-earth.jpg');background-position:60% center}.mission-total strong{font-size:42px}}
+@media(max-width:420px){.mission-hero{min-height:590px}.mission-total span{font-size:8px;max-width:180px}.mission-total strong{font-size:40px}}
