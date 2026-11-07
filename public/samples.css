@@ -1,0 +1,13 @@
+.sample-universe{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(250px,.8fr);align-items:center;gap:24px;margin:clamp(24px,5vw,72px) auto;padding:clamp(35px,6vw,80px);background:radial-gradient(circle at 75% 40%,#6a886555,transparent 42%),linear-gradient(125deg,#183125,#334936);border:1px solid #b3a273;border-radius:22px;color:#f5f0e4;box-shadow:0 24px 55px #1b2d2428}
+.sample-universe-copy{position:relative;z-index:2}.sample-universe .eyebrow{color:#d7c68d;font-size:10px;letter-spacing:2px}
+.sample-universe h2{font:400 clamp(42px,5.2vw,76px)/1.06 Georgia,serif;letter-spacing:-2.5px;margin:18px 0 22px;color:#fff9ea}.sample-universe h2 em{color:#cddbbd;font-weight:400}
+.sample-universe-copy>p:not(.eyebrow){font:15px/1.8 Georgia,serif;max-width:540px;color:#e4e8da;margin:0 0 28px}
+.sample-universe-link{display:inline-flex!important;align-items:center;gap:22px;background:#b9cca9!important;color:#253d2d!important;border:1px solid #d2c38e!important;box-shadow:0 0 24px #b3daa44c;text-decoration:none;transition:transform .2s,box-shadow .2s}
+.sample-universe-link:hover,.sample-universe-link:focus-visible{transform:translateY(-3px);box-shadow:0 0 38px #b3daa48c}
+.sample-universe-art{min-height:310px;position:relative;display:grid;place-items:center;pointer-events:none}
+.sample-universe-art span{position:absolute;display:block;aspect-ratio:1;border-radius:50%;border:1px solid #f4e9c2aa;box-shadow:inset -24px -24px 36px #0a190f8c,inset 8px 12px 20px #ffffff45,0 0 35px #d1deba55}
+.sample-universe-art span:nth-child(1){width:240px;background:radial-gradient(circle at 32% 30%,#dbd6b5,#667f62 40%,#253e32 75%);transform:translate(-45px,-15px)}
+.sample-universe-art span:nth-child(2){width:130px;background:radial-gradient(circle at 35% 30%,#e5bbe1,#74508a 45%,#211d45 80%);transform:translate(112px,80px)}
+.sample-universe-art span:nth-child(3){width:67px;background:radial-gradient(circle at 30% 25%,#faf0c6,#b09c68 40%,#51412b 80%);transform:translate(150px,-108px)}
+@media(max-width:760px){.sample-universe{grid-template-columns:1fr;padding:35px 25px;border-radius:15px}.sample-universe h2{font-size:clamp(42px,10vw,60px)}.sample-universe-art{min-height:185px;transform:scale(.72);margin:-25px 0}}
+@media(prefers-reduced-motion:reduce){.sample-universe-link{transition:none}}
