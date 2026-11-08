@@ -36,3 +36,16 @@
     else if(location.pathname==='/'||location.pathname==='/index.html')event.preventDefault();
   });
 })();
+
+// A small, always-available doorway to Fern's template multiverse.
+document.addEventListener('DOMContentLoaded',()=>{
+  if(document.querySelector('.fern-multiverse-float'))return;
+  const portal=document.createElement('a');
+  portal.className='fern-multiverse-float';
+  portal.href='https://fern-collection.mossybay257.chatgpt.site/';
+  portal.target='_blank';
+  portal.rel='noopener noreferrer';
+  portal.setAttribute('aria-label','Enter Ferns Multiverse to View Template Designs (opens in a new tab)');
+  portal.innerHTML='<span class="fern-multiverse-orb"><img src="/ferns-multiverse-orb.webp" alt="" width="512" height="512"></span><span class="fern-multiverse-float-label">Enter Ferns Multiverse <span>to View Template Designs ↗</span></span>';
+  document.body.appendChild(portal);
+});
