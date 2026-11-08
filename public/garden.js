@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(document.querySelector('.fern-multiverse-float'))return;
   const portal=document.createElement('a');
   portal.className='fern-multiverse-float';
-  portal.href='https://fern-collection.mossybay257.chatgpt.site/';
+  portal.href='https://the-fern-collection.fern-croxton.workers.dev/';
   portal.target='_blank';
   portal.rel='noopener noreferrer';
   portal.setAttribute('aria-label','Enter Ferns Multiverse to View Template Designs (opens in a new tab)');
