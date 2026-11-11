@@ -360,3 +360,16 @@ html body,html body *:not(svg):not(svg *){font-family:'American Typewriter','Cou
 /* Readable mission statement inside the compact Earth hero. */
 .impact-hero-caption{max-width:680px;font-size:13px;line-height:1.85;color:#f0ecd9;text-shadow:0 2px 12px #001d18}
 @media(max-width:620px){.impact-hero-caption{font-size:11px;line-height:1.75}}
+
+/* Beyond the Résumé: typographic portfolio preview */
+.resume-shot{background:#080b0b;position:relative;border-color:#bca477}
+.resume-preview{box-sizing:border-box;height:100%;width:100%;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:clamp(22px,5vw,55px);color:#f0e5d4;background:linear-gradient(124deg,transparent 0 29%,#b8beb519 29.2%,transparent 29.6% 70%,#c9cec51c 70.2%,transparent 70.7%),radial-gradient(ellipse at 80% 20%,#3b433b88,transparent 49%),linear-gradient(125deg,#070909,#18211d 61%,#060808)}
+.resume-preview:before,.resume-preview:after{content:"";position:absolute;pointer-events:none;border:1px solid #b8a16e9a}.resume-preview:before{inset:12px}.resume-preview:after{inset:19px;border-color:#b8a16e40}
+.resume-preview-kicker,.resume-preview-footer{position:relative;z-index:1;font:600 clamp(7px,.9vw,10px)/1.5 Georgia,serif;letter-spacing:.19em;color:#cdb581}
+.resume-preview-rule{width:60px;height:1px;background:#cbb37c;margin:20px 0;position:relative;z-index:1}
+.resume-preview strong{font:400 clamp(31px,4.1vw,62px)/.96 Georgia,serif;letter-spacing:-.045em;position:relative;z-index:1}
+.resume-preview strong em{font-weight:400;color:#d4c299}
+.resume-preview-footer{margin-top:24px;color:#bac5ba}
+.meet-resume-link{display:inline-block;margin:8px 0 18px;padding:10px 14px;border:1px solid #ae9464;color:#40543b;font:600 12px/1.5 Georgia,serif;letter-spacing:.04em;text-decoration:none}
+.meet-resume-link:hover{background:#e4d5b4}
+@media(max-width:600px){.resume-preview{padding:25px}.resume-preview strong{font-size:clamp(31px,8vw,47px)}}
